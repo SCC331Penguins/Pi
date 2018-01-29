@@ -1,0 +1,3 @@
+wampy==0.9.13
+autobahn==17.10.1
+twisted==17.9.0
