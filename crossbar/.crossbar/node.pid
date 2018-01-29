@@ -1,0 +1,19 @@
+{
+    "pid": 11801, 
+    "options": {
+        "reactor": null, 
+        "loglevel": "info", 
+        "logtofile": false, 
+        "cbdir": "/home/wilson/Projects/SCC331/Pi/crossbar/.crossbar", 
+        "logformat": "standard", 
+        "command": "start", 
+        "logdir": null, 
+        "config": "config.json", 
+        "colour": "auto", 
+        "personality": "community"
+    }, 
+    "argv": [
+        "/usr/local/bin/crossbar", 
+        "start"
+    ]
+}
