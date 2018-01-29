@@ -1,3 +1,2 @@
-class Main:
-    def __init__(self):
-        pass
+from pi import *
+Pi([])
