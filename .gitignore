@@ -1,8 +1,13 @@
 # Compiled python modules.
 *.pyc
 
+crossbar/.crossbar/*.pid
+
 # Setuptools distribution folder.
 /dist/
 
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
+
+# this programs log file
+pi.log
