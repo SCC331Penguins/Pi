@@ -1,6 +1,6 @@
 from autobahn.twisted.websocket import WebSocketServerFactory, \
     WebSocketServerProtocol
-
+from json import loads
 
 class WSProtocol(WebSocketServerProtocol):
 
@@ -8,7 +8,11 @@ class WSProtocol(WebSocketServerProtocol):
         self.factory.register(self)
 
     def onMessage(self, payload, isBinary):
-        print("WSMessage")
+        # in here maybe append payload to a structure for analysis and run analysis
+        if isBinary:
+            return
+        data = loads(payload)
+        self.addToDB(data['SENSORID'],data)
         # handle Photon Messages
         # if not isBinary:
         #     msg = "{} from {}".format(payload.decode('utf8'), self.peer)
@@ -26,11 +30,12 @@ class WSServerFactory(WebSocketServerFactory):
     Simple websocket server.with broadcast functionality
     """
 
-    def __init__(self):
+    def __init__(self, addToDB):
         WebSocketServerFactory.__init__(self, u"ws://127.0.0.1:8000")
         self.clients = []
         self.tickcount = 0
         self.protocol = WSProtocol
+        self.addToDB = addToDB
     def register(self, client):
         if client not in self.clients:
             print("registered client {}".format(client.peer))

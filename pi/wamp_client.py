@@ -29,6 +29,7 @@ typeDic = {
 # 100:PING,
 # 21:ACTIVE_SENSORS,
 20:UPDATE_SENSORS,
+8:'SCRIPTS_UPDATE',
 3:SET_WIFI_CREDS,
 }
 def err(err):

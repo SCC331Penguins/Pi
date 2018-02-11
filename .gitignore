@@ -11,3 +11,6 @@ crossbar/.crossbar/*.pid
 
 # this programs log file
 pi.log
+
+# removes databases
+*.db
