@@ -2,3 +2,4 @@ wampy==0.9.13
 autobahn==17.10.1
 twisted==17.9.0
 PyJWT==1.5.3
+nmap==0.6.1

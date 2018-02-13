@@ -4,24 +4,30 @@ import socket
 actuators = []
 
 def scan(message, expected_reply, set_port=None):
-    myIp = socket.gethostbyname(socket.gethostname()) # doesnt work on pi
+    #myIp = socket.gethostbyname(socket.gethostname()) # doesnt work on pi
     nm = nmap.PortScanner()
     s = nm.scan(hosts="192.168.0.0/24", arguments='-T4 -F')
+    print(s)
     # show all iOS devices in ip range
     #print (s.get())
     for ip in s["scan"]:
-        print ip
+        print(ip)
         try:
-            for port in s["scan"][ip]["tcp"]:
-                if(set_port == port or set_port== None):
-                    print port
-                    if verify_connection(ip, port, message, expected_reply):
-                        print "Added" + ip + "/" +str(port)
-                        actuators.append(ip+"/"+str(port))
-                    # ignore 80 and 22 + self
-            print("\n")
-        except:
-            print "Probably TCP Error"
+            if 'tcp' in s["scan"][ip]:
+                if 'mac' in s["scan"][ip]['addresses']:
+                    print(s["scan"][ip]['addresses']['mac'])
+                    mac = s["scan"][ip]['addresses']['mac']
+
+                for port in s["scan"][ip]["tcp"]:
+                    if (set_port == port or set_port == None):
+                        print (port)
+                        if verify_connection(ip, port, message, expected_reply):
+                            print ("Added" + ip + "/" + str(port))
+                            actuators.append(ip + "/" + str(port) + "-" + mac)
+                            # ignore 80 and 22 + self ?
+                print("\n")
+        except Exception as e:
+            print (e)
 
 def verify_connection(ip, port, message, expected_reply):
     try:
@@ -34,7 +40,8 @@ def verify_connection(ip, port, message, expected_reply):
         # use repr() ?
         print(data)
         return data == expected_reply
-    except:
+    except Exception as e:
+        print (e)
         return False
 
 # without expected reply
@@ -45,8 +52,8 @@ def send_message(ip, port, message):
         s.sendall(message)
         s.close()
     except:
-        print "Conection Failed"
+        print ("Conection Failed")
 
 if __name__ == '__main__':
     print("Start")
-    scan("HELLOKETTLE\n", u"HELLOAPP\r",2000)
+    scan("HELLOKETTLE\n", "HELLOAPP\r",2000)
