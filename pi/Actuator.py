@@ -57,12 +57,6 @@ def send_message(ip, port, message):
     except:
         print ("Conection Failed")
 
-
-if __name__ == '__main__':
-    print("Start")
-    find_kettle()
-    print(actuators)
-
 # ---- Kettle Functions ----
 def find_kettle():
     scan("HELLOKETTLE\n", "HELLOAPP\r", 2000)
@@ -73,3 +67,8 @@ def turn_kettle_on(ip, port):
 def turn_kettle_off(ip, port):
     send_message(ip, port, "set sys output 0x0")
 
+
+if __name__ == '__main__':
+    print("Start")
+    find_kettle()
+    print(actuators)
