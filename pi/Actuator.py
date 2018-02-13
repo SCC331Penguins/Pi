@@ -1,13 +1,12 @@
 import nmap
 import socket
 
-actuators = []
+actuators = {}
 
-def scan(message, expected_reply, set_port=None):
+def scan(message, expected_reply, set_port=None, type=None):
     #myIp = socket.gethostbyname(socket.gethostname()) # doesnt work on pi
     nm = nmap.PortScanner()
     s = nm.scan(hosts="192.168.0.0/24", arguments='-T4 -F')
-    print(s)
     # show all iOS devices in ip range
     #print (s.get())
     for ip in s["scan"]:
@@ -22,6 +21,10 @@ def scan(message, expected_reply, set_port=None):
                     if (set_port == port or set_port == None):
                         print (port)
                         if verify_connection(ip, port, message, expected_reply):
+                            actuators[mac] = {}
+                            actuators[mac]['type'] = type
+                            actuators[mac]['ip'] = ip
+                            actuators[mac]['mac'] = mac
                             print ("Added" + ip + "/" + str(port))
                             actuators.append(ip + "/" + str(port) + "-" + mac)
                             # ignore 80 and 22 + self ?
@@ -54,6 +57,16 @@ def send_message(ip, port, message):
     except:
         print ("Conection Failed")
 
+
 if __name__ == '__main__':
     print("Start")
     scan("HELLOKETTLE\n", "HELLOAPP\r",2000)
+    print(actuators)
+
+# ---- Kettle Functions ----
+def turn_kettle_on(ip, port):
+    send_message(ip, port, "set sys output 0x4")
+
+def turn_kettle_off(ip, port):
+    send_message(ip, port, "set sys output 0x0")
+
