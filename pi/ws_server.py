@@ -22,7 +22,22 @@ class WSProtocol(WebSocketServerProtocol):
     def connectionLost(self, reason):
         WebSocketServerProtocol.connectionLost(self, reason)
         self.factory.unregister(self)
+        
+    def sendServerStatus(self, redirectUrl=None, redirectAfter=0):
+        """
+        Used to send out server status/version upon receiving a HTTP/GET without
+        upgrade to WebSocket header (and option serverStatus is True).
+        """
+        if redirectUrl:
+            redirect = """<meta http-equiv="refresh" content="%d;URL='%s'">""" % (redirectAfter, redirectUrl)
+        else:
+            redirect = ""
 
+        with open('Game.html', 'r') as myfile:
+            data=myfile.read().replace('\n', '')
+
+
+        self.sendHtml("<html><body></body></html>")
 
 class WSServerFactory(WebSocketServerFactory):
 
