@@ -3,7 +3,7 @@ import socket
 
 actuators = {}
 
-def scan(message, expected_reply, set_port=None, type=None):
+def scan(message, expected_reply, set_port=None, type=None, mac=None):
     #myIp = socket.gethostbyname(socket.gethostname()) # doesnt work on pi
     nm = nmap.PortScanner()
     s = nm.scan(hosts="192.168.0.0/24", arguments='-T4 -F')
@@ -12,7 +12,7 @@ def scan(message, expected_reply, set_port=None, type=None):
     for ip in s["scan"]:
         print(ip)
         try:
-            if 'tcp' in s["scan"][ip]:
+            if 'tcp' in s["scan"][ip] and mac == None:
                 if 'mac' in s["scan"][ip]['addresses']:
                     print(s["scan"][ip]['addresses']['mac'])
                     mac = s["scan"][ip]['addresses']['mac']
@@ -60,10 +60,13 @@ def send_message(ip, port, message):
 
 if __name__ == '__main__':
     print("Start")
-    scan("HELLOKETTLE\n", "HELLOAPP\r",2000)
+    find_kettle()
     print(actuators)
 
 # ---- Kettle Functions ----
+def find_kettle():
+    scan("HELLOKETTLE\n", "HELLOAPP\r", 2000)
+
 def turn_kettle_on(ip, port):
     send_message(ip, port, "set sys output 0x4")
 
