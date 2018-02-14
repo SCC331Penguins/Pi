@@ -21,7 +21,7 @@ class ActuatorHandler:
     def setActuators(self, actuators):
         self.actuators = actuators
     def addWorkerThread(self):
-        t = DBWorker(self.cacheName, self)
+        t = ActuatorWorker(self.cacheName, self)
         t.daemon = True
         self.workers.append(t)
         t.start()

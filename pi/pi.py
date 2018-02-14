@@ -5,6 +5,7 @@ logger = logging.getLogger()
 from .db_handler import *
 # from .actuator_handler import *
 from .cache import *
+from .actuator_handler import *
 from .script_handler import *
 from .wamp_client import *
 from .ws_server import *
@@ -16,8 +17,8 @@ class Pi:
             Cache(cacheName)
         self.cacheName  = cacheName
         self.createDB()
+        self.createActuators()
         self.createScript()
-        # self.createActuator()
         logger.info("Starting Pi services...")
         if start_websocket_server:
             self.create_websocket_server(websocket_port)
@@ -30,22 +31,18 @@ class Pi:
         self.db = DBHandler(self.cacheName)
         self.db.start()
         logger.info("Initiaized Pi DB Queue")
-    def createScript(self):
+
+    def createActuators(self):
         logger.info("Initiaizing Pi Actuators...")
-        self.actHandler = ScriptHandler(self.cacheName,self.actHandler)
+        self.actHandler = ActuatorHandler(self.cacheName)
         self.actHandler.start()
         logger.info("Initiaized Pi Actuators")
+
     def createScript(self):
         logger.info("Initiaizing Pi Scripts Queue...")
         self.scripts = ScriptHandler(self.cacheName,self.actHandler)
         self.scripts.start()
         logger.info("Initiaized Pi Scripts Queue")
-
-    # def createActuator(self):
-    #     logger.info("Initiaizing Pi Actuator Queue...")
-    #     self.actuatorFinder = ActuatorHandler(cacheName)
-    #     self.actuatorFinder.start()
-    #     logger.info("Initiaized Pi Actuator Queue")
 
     def run(self):
         reactor.run()
