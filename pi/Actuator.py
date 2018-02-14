@@ -1,48 +1,52 @@
 import nmap
 import socket
 
-actuators = {}
 
-def scan(message, expected_reply, set_port=None, type=None, mac=None):
+criteria = [
+    {
+        'mac':'AC:CF:23',
+        'type':'Lights',
+    },
+    {
+        'message':'HELLOKETTLE\n',
+        'expected_reply':'HELLOAPP\r',
+        'port':2000,
+        'type':'Kettle',
+        'functions': ['turnOn','turnOff','set100C','set95C','set80C','set65C','setWarm']
+    }
+]
+def scan(s):
     #myIp = socket.gethostbyname(socket.gethostname()) # doesnt work on pi
-    old_mac = mac
-    nm = nmap.PortScanner()
-    s = nm.scan(hosts="192.168.0.0/24", arguments='-T4 -F')
-    print (s)
+    actuators = {}
     # show all iOS devices in ip range
     #print (s.get())
+    print(s)
     for ip in s["scan"]:
-        print(ip)
+        currentGuess = None
+        mac = None
         try:
             if 'tcp' in s["scan"][ip]:
-                if 'mac' in s["scan"][ip]['addresses'] and mac == None:
-                    print(s["scan"][ip]['addresses']['mac'])
+                if 'mac' in s["scan"][ip]['addresses']:
                     mac = s["scan"][ip]['addresses']['mac'] # get mac address
-
-                if mac.startswith("AC:CF:23"):
-                    # Light manufacturer mac address found
-                    actuators[mac] = {}
-                    actuators[mac]['type'] = type
-                    actuators[mac]['ip'] = ip
-                    actuators[mac]['mac'] = mac
-
-                for port in s["scan"][ip]["tcp"]:
-                    if set_port == port or set_port == None and message != None:
-                        print (port)
-                        if verify_connection(ip, port, message, expected_reply):
-                            # Saving
-                            actuators[mac] = {}
-                            actuators[mac]['type'] = type
-                            actuators[mac]['ip'] = ip
-                            actuators[mac]['mac'] = mac
-                            print ("Added" + ip + "/" + str(port))
-                            actuators.append(ip + "/" + str(port) + "-" + mac)
-                mac = old_mac # overwrite mac
-                print("\n")
+                else:
+                    mac = ""
+                for target in criteria:
+                    if('mac' in target.keys() and mac.startswith(target['mac'])):
+                        actuators[mac] = {}
+                        actuators[mac]['type'] = target['type']
+                        actuators[mac]['ip'] = ip
+                        actuators[mac]['mac'] = mac
+                        currentGuess = target['type']
+                    if("port" in target.keys() and target["port"] in s['scan'][ip]['tcp']):
+                        actuators[mac] = {}
+                        actuators[mac]['type'] = target['type']
+                        actuators[mac]['ip'] = ip
+                        actuators[mac]['mac'] = mac
             else:
-                print("TCP Failed")
+                pass
         except Exception as e:
             print (e)
+    return actuators
 
 def verify_connection(ip, port, message, expected_reply):
     try:
@@ -70,55 +74,59 @@ def send_message(ip, port, message):
         print (e)
 
 # ---- Kettle Functions ----
-def find_kettle():
-    scan("HELLOKETTLE\n", "HELLOAPP\r", 2000, "Kettle")
+def findDevices():
+        nm = nmap.PortScanner()
+        s = nm.scan(hosts="192.168.0.0/24", arguments='-T4 -F')
+        return scan(s)
 
-def turn_kettle_on(ip, port):
-    send_message(ip, port, "set sys output 0x4")
+def turnOn(kettle):
+    send_message(kettle.ip, 2000, "set sys output 0x4")
 
-def turn_kettle_off(ip, port):
-    send_message(ip, port, "set sys output 0x0")
+def turnOff(kettle):
+    send_message(kettle.ip, 2000, "set sys output 0x0")
 
-def set_kettle_100C(ip, port):
-    send_message(ip, port, "set sys output 0x80")
+def set100C(kettle):
+    send_message(kettle.ip, 2000, "set sys output 0x80")
 
-def set_kettle_95C(ip, port):
-    send_message(ip, port, "set sys output 0x2")
+def set95C(kettle):
+    send_message(kettle.ip, 2000, "set sys output 0x2")
 
-def set_kettle_80C(ip, port):
-    send_message(ip, port, "set sys output 0x4000")
+def set80C(kettle):
+    send_message(kettle.ip, 2000, "set sys output 0x4000")
 
-def set_kettle_warm(ip, port):
-    send_message(ip, port, "set sys output 0x8")
+def set65C(kettle):
+    send_message(kettle.ip, 2000, "set sys output 0x200")
+
+def setWarm(kettle):
+    send_message(kettle.ip, 2000, "set sys output 0x8")
 
 
 # ---- Lights Functions ----
-def find_light():
-    scan(None, None, None, "Light")
 
-def turn_all_lights_on(mac):
-    send_message_lights("420",mac)
+def allLightsOn(lights):
+    send_message_lights("420",lights.mac)
 
-def turn_all_lights_off(mac):
-    send_message_lights("410",mac)
+def allLightsOff(lights):
+    send_message_lights("410",lights.mac)
 
-def turn_group_1_on(mac):
-    send_message_lights("450",mac)
+def g1LightsOn(lights):
+    send_message_lights("450",lights.mac)
 
-def turn_group_1_off(mac):
-    send_message_lights("460",mac)
+def g1LightsOff(lights):
+    send_message_lights("460",lights.mac)
 
-def turn_group_2_on(mac):
-    send_message_lights("470",mac)
+def g2LightsOn(lights):
+    send_message_lights("470",lights.mac)
 
-def turn_group_2_off(mac):
-    send_message_lights("480",mac)
+def g2LightsOff(lights):
+    send_message_lights("480",lights.mac)
 
-def turn_group_3_on(mac):
-    send_message_lights("490",mac)
+def g3LightsOn(lights):
+    send_message_lights("490",lights.mac)
 
-def turn_group_3_off(mac):
-    send_message_lights("4a0",mac)
+def g3LightsOff(lights):
+    send_message_lights("4a0",lights.mac)
+
 def send_message_lights(number, mac):
     send_message("178.62.58.245",38899, "APP#"+mac+'#CMD#'+number+'\n')
 #APPAC:CF:23:28:C2:2C
@@ -127,7 +135,5 @@ def send_message_lights(number, mac):
 
 if __name__ == '__main__':
     print("Start")
-    # find_kettle()
-    #find_light()
-    turn_group_1_on("AC:CF:23:A1:FB:38")
-    print(actuators)
+
+    print(findDevices())
