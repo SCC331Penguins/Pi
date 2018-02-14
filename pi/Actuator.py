@@ -65,7 +65,7 @@ def send_message(ip, port, message):
 
 # ---- Kettle Functions ----
 def find_kettle():
-    scan("HELLOKETTLE\n", "HELLOAPP\r", 2000)
+    scan("HELLOKETTLE\n", "HELLOAPP\r", 2000, "Kettle")
 
 def turn_kettle_on(ip, port):
     send_message(ip, port, "set sys output 0x4")
@@ -73,8 +73,52 @@ def turn_kettle_on(ip, port):
 def turn_kettle_off(ip, port):
     send_message(ip, port, "set sys output 0x0")
 
+def set_kettle_100C(ip, port):
+    send_message(ip, port, "set sys output 0x80")
+
+def set_kettle_95C(ip, port):
+    send_message(ip, port, "set sys output 0x2")
+
+def set_kettle_80C(ip, port):
+    send_message(ip, port, "set sys output 0x4000")
+
+def set_kettle_warm(ip, port):
+    send_message(ip, port, "set sys output 0x8")
+
+
+# ---- Kettle Functions ----
+def find_light(mac):
+    scan("APP#"+mac+"#CMD#420\n", "OKAC#"+mac+"#\r", 38899, "Light", mac) # response may be wrong
+
+def turn_all_lights_on(ip, port, mac):
+        send_message(ip, port, "APP#" + mac + "#CMD#420\n")
+
+def turn_all_lights_off(ip, port, mac):
+    send_message(ip, port, "APP#" + mac + "#CMD#410\n")
+
+def turn_group_1_on(ip, port, mac):
+    send_message(ip, port, "APP#" + mac + "#CMD#450\n")
+
+def turn_group_1_off(ip, port, mac):
+    send_message(ip, port, "APP#" + mac + "#CMD#460\n")
+
+def turn_group_2_on(ip, port, mac):
+    send_message(ip, port, "APP#" + mac + "#CMD#470\n")
+
+def turn_group_2_off(ip, port, mac):
+    send_message(ip, port, "APP#" + mac + "#CMD#480\n")
+
+def turn_group_2_on(ip, port, mac):
+    send_message(ip, port, "APP#" + mac + "#CMD#490\n")
+
+def turn_group_2_off(ip, port, mac):
+    send_message(ip, port, "APP#" + mac + "#CMD#4a0\n")
+#APPAC:CF:23:28:C2:2C
+#OKAC:CF:23:28:C2:2C
+
 
 if __name__ == '__main__':
     print("Start")
     find_kettle()
+    #find_light("AC:CF:23:28:C2:2C")
     print(actuators)
