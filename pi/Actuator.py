@@ -5,15 +5,17 @@ actuators = {}
 
 def scan(message, expected_reply, set_port=None, type=None, mac=None):
     #myIp = socket.gethostbyname(socket.gethostname()) # doesnt work on pi
+    old_mac = mac
     nm = nmap.PortScanner()
     s = nm.scan(hosts="192.168.0.0/24", arguments='-T4 -F')
+    print (s)
     # show all iOS devices in ip range
     #print (s.get())
     for ip in s["scan"]:
         print(ip)
         try:
-            if 'tcp' in s["scan"][ip] and mac == None:
-                if 'mac' in s["scan"][ip]['addresses']:
+            if 'tcp' in s["scan"][ip]:
+                if 'mac' in s["scan"][ip]['addresses'] and mac == None:
                     print(s["scan"][ip]['addresses']['mac'])
                     mac = s["scan"][ip]['addresses']['mac']
 
@@ -21,6 +23,7 @@ def scan(message, expected_reply, set_port=None, type=None, mac=None):
                     if (set_port == port or set_port == None):
                         print (port)
                         if verify_connection(ip, port, message, expected_reply):
+                            print('hh')
                             actuators[mac] = {}
                             actuators[mac]['type'] = type
                             actuators[mac]['ip'] = ip
@@ -28,7 +31,10 @@ def scan(message, expected_reply, set_port=None, type=None, mac=None):
                             print ("Added" + ip + "/" + str(port))
                             actuators.append(ip + "/" + str(port) + "-" + mac)
                             # ignore 80 and 22 + self ?
+                mac = old_mac
                 print("\n")
+            else:
+                print("TCP Failed")
         except Exception as e:
             print (e)
 
