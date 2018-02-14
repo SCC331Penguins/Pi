@@ -7,6 +7,7 @@ logging.basicConfig(filename='pi.log',
                     level = logging.DEBUG,
                     format = LOG_FORMAT,
                     filemode = 'w')
+logging.getLogger().addHandler(logging.StreamHandler())
 
 p = Pi([])
 p.start()
