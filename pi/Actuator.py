@@ -92,33 +92,35 @@ def set_kettle_warm(ip, port):
     send_message(ip, port, "set sys output 0x8")
 
 
-# ---- Kettle Functions ----
+# ---- Lights Functions ----
 def find_light():
-    scan(None, None, None, "Light") 
+    scan(None, None, None, "Light")
 
 def turn_all_lights_on(mac):
-    send_message("178.62.58.245", 38899, "APP#" + mac + "#CMD#420\n")
+    send_message_lights("420",mac)
 
 def turn_all_lights_off(mac):
-    send_message("178.62.58.245", 38899, "APP#" + mac + "#CMD#410\n")
+    send_message_lights("410",mac)
 
 def turn_group_1_on(mac):
-    send_message("178.62.58.245", 38899, "APP#" + mac + "#CMD#450\n")
+    send_message_lights("450",mac)
 
 def turn_group_1_off(mac):
-    send_message("178.62.58.245", 38899, "APP#" + mac + "#CMD#460\n")
+    send_message_lights("460",mac)
 
 def turn_group_2_on(mac):
-    send_message("178.62.58.245", 38899, "APP#" + mac + "#CMD#470\n")
+    send_message_lights("470",mac)
 
 def turn_group_2_off(mac):
-    send_message("178.62.58.245", 38899, "APP#" + mac + "#CMD#480\n")
+    send_message_lights("480",mac)
 
 def turn_group_3_on(mac):
-    send_message("178.62.58.245", 38899, "APP#" + mac + "#CMD#490\n")
+    send_message_lights("490",mac)
 
 def turn_group_3_off(mac):
-    send_message("178.62.58.245", 38899, "APP#" + mac + "#CMD#4a0\n")
+    send_message_lights("4a0",mac)
+def send_message_lights(number, mac):
+    send_message("178.62.58.245",38899, "APP#"+mac+'#CMD#'+number+'\n')
 #APPAC:CF:23:28:C2:2C
 #OKAC:CF:23:28:C2:2C
 
@@ -127,5 +129,5 @@ if __name__ == '__main__':
     print("Start")
     # find_kettle()
     #find_light()
-    turn_group_1_off("AC:CF:23:A1:FB:38")
+    turn_group_1_on("AC:CF:23:A1:FB:38")
     print(actuators)
