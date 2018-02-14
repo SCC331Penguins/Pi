@@ -88,10 +88,10 @@ def set_kettle_warm(ip, port):
 
 # ---- Kettle Functions ----
 def find_light(mac):
-    scan("APP#"+mac+"#CMD#420\n", "OKAC#"+mac+"#\r", 38899, "Light", mac) # response may be wrong
+    scan("APP#"+mac+"#CMD#420\n", "OK#sent", 38899, "Light", mac) # response may be wrong
 
 def turn_all_lights_on(ip, port, mac):
-        send_message(ip, port, "APP#" + mac + "#CMD#420\n")
+    send_message(ip, port, "APP#" + mac + "#CMD#420\n")
 
 def turn_all_lights_off(ip, port, mac):
     send_message(ip, port, "APP#" + mac + "#CMD#410\n")
@@ -119,6 +119,6 @@ def turn_group_2_off(ip, port, mac):
 
 if __name__ == '__main__':
     print("Start")
-    find_kettle()
-    #find_light("AC:CF:23:28:C2:2C")
+    # find_kettle()
+    find_light("AC:CF:23:A1:FB:38")
     print(actuators)
