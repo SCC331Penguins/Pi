@@ -108,10 +108,10 @@ def turn_group_2_on(ip, port, mac):
 def turn_group_2_off(ip, port, mac):
     send_message(ip, port, "APP#" + mac + "#CMD#480\n")
 
-def turn_group_2_on(ip, port, mac):
+def turn_group_3_on(ip, port, mac):
     send_message(ip, port, "APP#" + mac + "#CMD#490\n")
 
-def turn_group_2_off(ip, port, mac):
+def turn_group_3_off(ip, port, mac):
     send_message(ip, port, "APP#" + mac + "#CMD#4a0\n")
 #APPAC:CF:23:28:C2:2C
 #OKAC:CF:23:28:C2:2C
