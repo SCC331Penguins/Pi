@@ -30,10 +30,14 @@ class Pi:
         self.db = DBHandler(self.cacheName)
         self.db.start()
         logger.info("Initiaized Pi DB Queue")
-
+    def createScript(self):
+        logger.info("Initiaizing Pi Actuators...")
+        self.actHandler = ScriptHandler(self.cacheName,self.actHandler)
+        self.actHandler.start()
+        logger.info("Initiaized Pi Actuators")
     def createScript(self):
         logger.info("Initiaizing Pi Scripts Queue...")
-        self.scripts = ScriptHandler(self.cacheName)
+        self.scripts = ScriptHandler(self.cacheName,self.actHandler)
         self.scripts.start()
         logger.info("Initiaized Pi Scripts Queue")
 

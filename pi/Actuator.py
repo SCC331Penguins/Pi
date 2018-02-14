@@ -17,7 +17,7 @@ criteria = [
 ]
 def scan(s):
     #myIp = socket.gethostbyname(socket.gethostname()) # doesnt work on pi
-    actuators = {}
+    actuators = []
     # show all iOS devices in ip range
     #print (s.get())
     print(s)
@@ -32,16 +32,17 @@ def scan(s):
                     mac = ""
                 for target in criteria:
                     if('mac' in target.keys() and mac.startswith(target['mac'])):
-                        actuators[mac] = {}
-                        actuators[mac]['type'] = target['type']
-                        actuators[mac]['ip'] = ip
-                        actuators[mac]['mac'] = mac
-                        currentGuess = target['type']
+                        obj = {}
+                        obj['type'] = target['type']
+                        obj['ip'] = ip
+                        obj['mac'] = mac
+                        actuators.append(obj)
                     if("port" in target.keys() and target["port"] in s['scan'][ip]['tcp']):
-                        actuators[mac] = {}
-                        actuators[mac]['type'] = target['type']
-                        actuators[mac]['ip'] = ip
-                        actuators[mac]['mac'] = mac
+                        obj = {}
+                        obj['type'] = target['type']
+                        obj['ip'] = ip
+                        obj['mac'] = mac
+                        actuators.append(obj)
             else:
                 pass
         except Exception as e:
