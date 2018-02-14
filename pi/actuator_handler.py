@@ -5,7 +5,7 @@ from .cache import *
 
 logger = logging.getLogger()
 
-class DBHandler:
+class ActuatorHandler:
     def __init__(self, cacheName):
         self.cacheName = cacheName
         self.queue = Queue()
@@ -19,27 +19,27 @@ class DBHandler:
         t.daemon = True
         self.workers.append(t)
         t.start()
-    def updateScripts(self, scripts):
-        self.queue.put(['updateScripts',scripts])
+    def updateScripts(scripts):
+        self.queue.push(['updateScripts',html.unescape(script)])
     def start(self):
         self.addWorkerThread()
 
-class DBWorker(Thread):
+class ActuatorWorker(Thread):
     def __init__(self,cacheName, db):
         Thread.__init__(self)
         self.db = db
         self.cacheName = cacheName
     def run(self):
         self.cache = Cache(self.cacheName)
-        logger.info('DB Thread Started')
+        logger.info('Actuator Thread Started')
         while True:
             dataAr = self.db.pull()
             if(dataAr[0]=='updateScripts'):
                 self.cache.updateScripts(dataAr[1])
             else:
                 self.cache.addSensorData(dataAr[0],dataAr[1])
-            logger.debug('Added data for ' + dataAr[0])
-class DBWatcher(Thread):
+            logger.debug('Added sensor data for ' + dataAr[0])
+class ActuatorWatcher(Thread):
     def __init__(self, db):
         Thread.__init__(self)
         self.db = db

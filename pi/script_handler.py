@@ -1,0 +1,58 @@
+import logging
+from Queue import Queue
+from threading import Thread
+from .cache import *
+
+logger = logging.getLogger()
+DATA_COUNT_BEFORE_REFRESH = 100
+
+
+def toValidScript(script):
+    return urllib.unquote_plus(script)
+
+
+class ScriptHandler:
+    def __init__(self, cacheName):
+        self.cacheName = cacheName
+        self.queue = Queue()
+        self.workers = []
+
+    def push(self,dataAr):
+        self.queue.put(dataAr)
+
+    def pull(self):
+        return self.queue.get()
+
+    def addWorkerThread(self):
+        t = ScriptWorker(self)
+        t.daemon = True
+        self.workers.append(t)
+        t.start()
+
+    def start(self):
+        self.addWorkerThread()
+
+class ScriptWorker(Thread):
+    def __init__(self,ctx):
+        Thread.__init__(self)
+        self.data = {}
+        self.count = 0
+        self.cacheName = ctx.cacheName
+        self.handler = ctx
+    def run(self):
+        self.cache = Cache(self.cacheName)
+        logger.info('Script Thread Started')
+        while True:
+            self.scripts = self.cache.getScripts()
+            while self.count < DATA_COUNT_BEFORE_REFRESH:
+                newData = self.handler.pull()
+                self.data.update(newData)
+                self.evaluateData()
+                self.count += 1
+            self.count = 0
+    def evaluateData(self):
+        for script in self.scripts:
+            try:
+                exec(toValidScript(script), {'sensors': self.data, 'actuators':[]})
+            except:
+                pass

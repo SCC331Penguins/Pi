@@ -1,7 +1,7 @@
 import unittest, random, time
 from pi import WSServerFactory, Cache, Pi
 from json import dumps
-def randFloat(limit=1.0):
+def randFloat(limit=10.0):
     return random.uniform(0.0,limit)
 class TestWSServer(unittest.TestCase):
     def test_onMessageToDB(self):

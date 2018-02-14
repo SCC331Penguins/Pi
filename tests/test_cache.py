@@ -19,7 +19,6 @@ class TestCache(unittest.TestCase):
         self.assertRaises(ValueError,c.getSensorDataFromID,"TESTDEVICEID",Limit=0)
         self.assertFalse(c.addSensorData("TESTDEVICEID",data2))
     def test_Cache(self):
-
         c = Cache("testingCache")
         threads = []
         i = 0
