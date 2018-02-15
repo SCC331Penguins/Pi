@@ -50,13 +50,13 @@ class ScriptWorker(Thread):
         while True:
             self.scripts = self.cache.getScripts()
             while self.count < DATA_COUNT_BEFORE_REFRESH:
-                newData = self.handler.pull()
-                self.data.update(newData)
+                # newData = self.handler.pull()
+                # self.data.update(newData)
                 self.evaluateData()
                 self.count += 1
             self.count = 0
     def evaluateData(self):
-        actuators = actHandler.getActuators()
+        actuators = self.actHandler.getActuators()
         for script in self.scripts:
             try:
                 exec(toValidScript(script), {'sensors': self.data, 'actuators':actuators})

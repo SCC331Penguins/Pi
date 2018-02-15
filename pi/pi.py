@@ -66,7 +66,7 @@ class Pi:
         reactor.listenTCP(port,self.ws_server)
         logger.info("Started websocket server")
 
-    def create_wamp_client(self, port=8080, path=u'ws', realm=u'default', ip='127.0.0.1'):
+    def create_wamp_client(self, port=8080, path=u'ws', realm=u'default', ip='192.168.0.109'):
         # creates WAMP Server
         logger.info("Starting WAMP client...")
         wamp = WAMP()

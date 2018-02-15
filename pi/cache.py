@@ -50,7 +50,8 @@ class Cache:
         for sensor in sensors:
             try:
                 val = data.get(sensor,'NULL')
-                if(val != 'NULL'):
+                print(val)
+                if(val != 'NULL' and val != None and sensor!= "SENSORID"):
                     val = float(val)
                 toAdd.append(val)
             except ValueError:
