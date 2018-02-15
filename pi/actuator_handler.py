@@ -2,6 +2,7 @@ import logging
 from Queue import Queue
 from threading import Thread
 from .cache import *
+from .Actuator import *
 
 logger = logging.getLogger()
 
@@ -10,17 +11,20 @@ class ActuatorHandler:
         self.cacheName = cacheName
         self.queue = Queue()
         self.workers = []
-    def push(self,dataAr):
-        self.queue.put(dataAr)
+        self.actuators = []
+    def push(self):
+        self.queue.put(1)
     def pull(self):
         return self.queue.get();
+    def getActuators(self):
+        return self.actuators
+    def setActuators(self, actuators):
+        self.actuators = actuators
     def addWorkerThread(self):
-        t = DBWorker(self.cacheName, self)
+        t = ActuatorWorker(self.cacheName, self)
         t.daemon = True
         self.workers.append(t)
         t.start()
-    def updateScripts(scripts):
-        self.queue.push(['updateScripts',html.unescape(script)])
     def start(self):
         self.addWorkerThread()
 
@@ -33,12 +37,11 @@ class ActuatorWorker(Thread):
         self.cache = Cache(self.cacheName)
         logger.info('Actuator Thread Started')
         while True:
-            dataAr = self.db.pull()
-            if(dataAr[0]=='updateScripts'):
-                self.cache.updateScripts(dataAr[1])
-            else:
-                self.cache.addSensorData(dataAr[0],dataAr[1])
-            logger.debug('Added sensor data for ' + dataAr[0])
+            var = self.db.pull()
+            if(var == 1):
+                actuators = findDevices()
+                this.db.setActuators(actuators)
+            logger.debug('Added Actuators')
 class ActuatorWatcher(Thread):
     def __init__(self, db):
         Thread.__init__(self)

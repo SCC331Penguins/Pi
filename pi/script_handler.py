@@ -12,11 +12,11 @@ def toValidScript(script):
 
 
 class ScriptHandler:
-    def __init__(self, cacheName):
+    def __init__(self, cacheName, actHandler):
         self.cacheName = cacheName
         self.queue = Queue()
         self.workers = []
-
+        self.actHandler = actHandler
     def push(self,dataAr):
         self.queue.put(dataAr)
 
@@ -24,7 +24,7 @@ class ScriptHandler:
         return self.queue.get()
 
     def addWorkerThread(self):
-        t = ScriptWorker(self)
+        t = ScriptWorker(self, self.actHandler)
         t.daemon = True
         self.workers.append(t)
         t.start()
@@ -33,12 +33,13 @@ class ScriptHandler:
         self.addWorkerThread()
 
 class ScriptWorker(Thread):
-    def __init__(self,ctx):
+    def __init__(self,ctx, actHandler):
         Thread.__init__(self)
         self.data = {}
         self.count = 0
         self.cacheName = ctx.cacheName
         self.handler = ctx
+        self.actHandler = actHandler
     def run(self):
         self.cache = Cache(self.cacheName)
         logger.info('Script Thread Started')
@@ -51,8 +52,9 @@ class ScriptWorker(Thread):
                 self.count += 1
             self.count = 0
     def evaluateData(self):
+        actuators = actHandler.getActuators()
         for script in self.scripts:
             try:
-                exec(toValidScript(script), {'sensors': self.data, 'actuators':[]})
+                exec(toValidScript(script), {'sensors': self.data, 'actuators':actuators})
             except:
                 pass
