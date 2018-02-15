@@ -28,6 +28,7 @@ class ActuatorHandler:
         t.daemon = True
         self.workers.append(t)
         t.start()
+        self.push()
     def start(self):
         self.addWorkerThread()
 
@@ -47,4 +48,4 @@ class ActuatorWorker(Thread):
             if(var == 1):
                 actuators = findDevices()
                 this.db.setActuators(actuators)
-            logger.debug('Added Actuators')
+            logger.info('Added Actuators')

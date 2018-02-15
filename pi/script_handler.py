@@ -2,7 +2,7 @@ import logging
 from Queue import Queue
 from threading import Thread
 from .cache import *
-
+from .Actuator import *
 logger = logging.getLogger()
 DATA_COUNT_BEFORE_REFRESH = 100
 
@@ -56,9 +56,18 @@ class ScriptWorker(Thread):
                 self.count += 1
             self.count = 0
     def evaluateData(self):
+        print('Script THread')
+
         actuators = self.actHandler.getActuators()
+        print(actuators)
+        print(self.scripts)
         for script in self.scripts:
+            print(script)
+	    print(toValidScript(script))
             try:
-                exec(toValidScript(script), {'sensors': self.data, 'actuators':actuators})
-            except:
+                # turnOnKettle("192.168.0.102")
+                # send_message_lights("420","AC:CF:23:A1:FB:38")
+                exec(toValidScript(script), {'sensors': {"430032000f47353136383631":{"light":1.2}}, 'actuators':actuators, 'turnOnKettle':turnOnKettle})
+            except Exception as e:
+                print(e)
                 pass

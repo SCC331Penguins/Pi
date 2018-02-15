@@ -86,6 +86,9 @@ class Cache:
             sql = sql + " LIMIT ?"
             params.append(Limit)
         cursor.execute(sql,params)
-        return cursor.fetchall()
+        its = []
+        for item in cursor.fetchall():
+            its.append(item[1])
+        return its
     def close(self):
         self.conn.close()

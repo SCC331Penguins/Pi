@@ -41,7 +41,7 @@ class Pi:
         # this creates the Actuator Thread and adds the handler to the Pi
         logger.info("Initiaizing Pi Actuators...")
         self.actHandler = ActuatorHandler(self.cacheName)
-        self.actHandler.start()
+        # self.actHandler.start()
         logger.info("Initiaized Pi Actuators")
 
     def createScript(self):
