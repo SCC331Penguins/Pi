@@ -7,6 +7,9 @@ from .Actuator import *
 logger = logging.getLogger()
 
 class ActuatorHandler:
+    """
+    This Handles the Queue which The Worker pulls from in order to determine what Actuators are on the network
+    """
     def __init__(self, cacheName):
         self.cacheName = cacheName
         self.queue = Queue()
@@ -29,6 +32,9 @@ class ActuatorHandler:
         self.addWorkerThread()
 
 class ActuatorWorker(Thread):
+    """
+    This uses the Actuators class to determine what Actuators are on the network this takes a long time so it is on its own thread
+    """
     def __init__(self,cacheName, db):
         Thread.__init__(self)
         self.db = db
@@ -42,7 +48,3 @@ class ActuatorWorker(Thread):
                 actuators = findDevices()
                 this.db.setActuators(actuators)
             logger.debug('Added Actuators')
-class ActuatorWatcher(Thread):
-    def __init__(self, db):
-        Thread.__init__(self)
-        self.db = db

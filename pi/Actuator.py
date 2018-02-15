@@ -1,7 +1,7 @@
 import nmap
 import socket
 
-
+# this is used to determine the actuators on the network
 criteria = [
     {
         'mac':'AC:CF:23',

@@ -6,6 +6,9 @@ from .cache import *
 logger = logging.getLogger()
 
 class DBHandler:
+    """
+    This Handles the Queue which The Worker pulls from in order to determine what DB inserts to DO
+    """
     def __init__(self, cacheName):
         self.cacheName = cacheName
         self.queue = Queue()
@@ -25,6 +28,9 @@ class DBHandler:
         self.addWorkerThread()
 
 class DBWorker(Thread):
+    """
+    This uses the Cache class to INSERT into the DB
+    """
     def __init__(self,cacheName, db):
         Thread.__init__(self)
         self.db = db
@@ -39,7 +45,3 @@ class DBWorker(Thread):
             else:
                 self.cache.addSensorData(dataAr[0],dataAr[1])
             logger.debug('Added data for ' + dataAr[0])
-class DBWatcher(Thread):
-    def __init__(self, db):
-        Thread.__init__(self)
-        self.db = db

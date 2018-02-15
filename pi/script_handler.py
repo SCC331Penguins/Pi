@@ -6,12 +6,13 @@ from .cache import *
 logger = logging.getLogger()
 DATA_COUNT_BEFORE_REFRESH = 100
 
-
 def toValidScript(script):
     return urllib.unquote_plus(script)
 
-
 class ScriptHandler:
+    """
+    This Handles the Queue which The Worker pulls from in order to determine what Scripts get updated
+    """
     def __init__(self, cacheName, actHandler):
         self.cacheName = cacheName
         self.queue = Queue()
@@ -33,6 +34,9 @@ class ScriptHandler:
         self.addWorkerThread()
 
 class ScriptWorker(Thread):
+    """
+    This Worker updates Scripts
+    """
     def __init__(self,ctx, actHandler):
         Thread.__init__(self)
         self.data = {}
