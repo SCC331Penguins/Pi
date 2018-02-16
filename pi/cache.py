@@ -9,6 +9,9 @@ def isValidCache(cacheName):
 
 
 class Cache:
+    """
+    This abstracts over the Database any Insertions and Updates should not happen in the main thread
+    """
     def __init__(self,db, new=False):
         file = db+'.db'
         if(not os.path.isfile(file)):
@@ -19,7 +22,6 @@ class Cache:
             except OSError:
                 pass
         self.conn = sqlite3.connect(file)
-        # cursor as part of class maybe a bad idea
         if(new):
             cursor =self.conn.cursor()
             cursor.execute('''CREATE TABLE sensorData (
@@ -30,24 +32,26 @@ class Cache:
             self.conn.commit()
         pass
     def updateScripts(self, scripts):
-        # DELETE ALL Scripts
+        # DELETE ALL Scripts and INSERT new Scripts
         sql = ''' DELETE FROM scripts; '''
         cursor = self.conn.cursor()
         cursor.execute(sql)
+
         for script in scripts:
             sql = 'INSERT INTO scripts (script) VALUES (\''+script+'\')'
             cursor.execute(sql)
-        # INSERT Scripts
         self.conn.commit()
         pass
     def addSensorData(self, device_id, data):
+        # INSERTs into sensorData table
         toAdd = []
         toAdd.append(device_id)
         cursor = self.conn.cursor()
         for sensor in sensors:
             try:
                 val = data.get(sensor,'NULL')
-                if(val != 'NULL'):
+                print(val)
+                if(val != 'NULL' and val != None and sensor!= "SENSORID"):
                     val = float(val)
                 toAdd.append(val)
             except ValueError:
@@ -58,6 +62,7 @@ class Cache:
         return True
         pass
     def getSensorDataFromID(self, device_id, Limit=None):
+        # get sensorData from DB given a device_id
         if Limit<=0 and Limit != None:
             raise ValueError('Limit Invalid')
         params = []
@@ -71,6 +76,7 @@ class Cache:
         return cursor.fetchall()
 
     def getScripts(self, Limit=None):
+        # get all scripts
         if Limit<=0 and Limit != None:
             raise ValueError('Limit Invalid')
         params = []
@@ -80,6 +86,9 @@ class Cache:
             sql = sql + " LIMIT ?"
             params.append(Limit)
         cursor.execute(sql,params)
-        return cursor.fetchall()
+        its = []
+        for item in cursor.fetchall():
+            its.append(item[1])
+        return its
     def close(self):
         self.conn.close()

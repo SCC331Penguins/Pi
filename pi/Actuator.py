@@ -1,7 +1,7 @@
 import nmap
 import socket
 
-
+# this is used to determine the actuators on the network
 criteria = [
     {
         'mac':'AC:CF:23',
@@ -81,7 +81,10 @@ def findDevices():
         return scan(s)
 
 def turnOn(kettle):
-    send_message(kettle.ip, 2000, "set sys output 0x4")
+    send_message(kettle.ip, 2000, "set sys output 0x4\n")
+
+def turnOnKettle(ip):
+    send_message(ip, 2000, "set sys output 0x4")
 
 def turnOff(kettle):
     send_message(kettle.ip, 2000, "set sys output 0x0")
@@ -136,5 +139,5 @@ def send_message_lights(number, mac):
 
 if __name__ == '__main__':
     print("Start")
-
-    print(findDevices())
+    send_message_lights("420","AC:CF:23:A1:FB:38")
+    #print(findDevices())

@@ -11,8 +11,9 @@ class WSProtocol(WebSocketServerProtocol):
         # in here maybe append payload to a structure for analysis and run analysis
         if isBinary:
             return
+        print payload
         data = loads(payload)
-        self.addToDB(data['SENSORID'],data)
+        self.factory.addToDB(data['SENSORID'],data)
         # handle Photon Messages
         # if not isBinary:
         #     msg = "{} from {}".format(payload.decode('utf8'), self.peer)

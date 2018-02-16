@@ -10,9 +10,13 @@ from .script_handler import *
 from .wamp_client import *
 from .ws_server import *
 class Pi:
+    """
+    This is the main class this handles the main Thread but when started fires off some daemons to handle other features such as Database, Actuators and Scripts
+    """
     def __init__(self, args):
         pass
     def start(self, start_websocket_server=True, start_wamp_client=True, websocket_port=8000, wamp_port=8080, cacheName='Penguins'):
+        # this function deals with most of the specifics that the pi can use
         if(not isValidCache(cacheName)):
             Cache(cacheName)
         self.cacheName  = cacheName
@@ -27,18 +31,21 @@ class Pi:
         logger.info("Started  All Pi services")
 
     def createDB(self):
+        # this creates the DB Thread and adds the handler to the Pi
         logger.info("Initiaizing Pi DB Queue...")
         self.db = DBHandler(self.cacheName)
         self.db.start()
         logger.info("Initiaized Pi DB Queue")
 
     def createActuators(self):
+        # this creates the Actuator Thread and adds the handler to the Pi
         logger.info("Initiaizing Pi Actuators...")
         self.actHandler = ActuatorHandler(self.cacheName)
-        self.actHandler.start()
+        # self.actHandler.start()
         logger.info("Initiaized Pi Actuators")
 
     def createScript(self):
+        # this creates the Script Thread and adds the handler to the Pi
         logger.info("Initiaizing Pi Scripts Queue...")
         self.scripts = ScriptHandler(self.cacheName,self.actHandler)
         self.scripts.start()
@@ -52,13 +59,15 @@ class Pi:
         self.db.push([device_id,data])
 
     def create_websocket_server(self, port):
+        # creates WS Server
         logger.info("Starting websocket server...")
         self.ws_server = WSServerFactory(self.addToDB)
         self.ws_server.protocol = WSProtocol
         reactor.listenTCP(port,self.ws_server)
         logger.info("Started websocket server")
 
-    def create_wamp_client(self, port=8080, path=u'ws', realm=u'default', ip='127.0.0.1'):
+    def create_wamp_client(self, port=8080, path=u'ws', realm=u'default', ip='192.168.0.109'):
+        # creates WAMP Server
         logger.info("Starting WAMP client...")
         wamp = WAMP()
         url = u'ws://'+ip+':'+str(port)+'/'+path
