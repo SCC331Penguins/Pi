@@ -20,7 +20,8 @@ class ScriptHandler:
         self.actHandler = actHandler
     def push(self,dataAr):
         self.queue.put(dataAr)
-
+    def pushCommand(script):
+        self.queue.push(script)
     def pull(self):
         return self.queue.get()
 
@@ -45,8 +46,6 @@ class ScriptWorker(Thread):
         self.handler = ctx
         self.queue = Queue()
         self.actHandler = actHandler
-    def pushCommand(script):
-        self.queue.push(script)
     def run(self):
         self.cache = Cache(self.cacheName)
         logger.info('Script Thread Started')

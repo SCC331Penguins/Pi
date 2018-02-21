@@ -83,4 +83,4 @@ class Pi:
         self.mqtt_service.startService()
         logger.info("Started MQTT client")
     def link_client_to_server(self):
-        self.mqtt_service.addDataChannelHandlers(self.ws_server.addDataChannel, self.ws_server.removeDataChannel, self.actHandler.pushCommand)
+        self.mqtt_service.addDataChannelHandlers(self.ws_server.addDataChannel, self.ws_server.removeDataChannel, self.scripts.pushCommand)

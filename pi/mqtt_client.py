@@ -76,8 +76,6 @@ class MQTTService(ClientService):
         self.generate_token()
         self.channels = ['SCC3312']
         logger.info('WAMP Server Setup')
-    def pushCommand(command):
-        pass
 
     def startService(self):
         logger.info("starting MQTT Client Subscriber Service")
@@ -153,9 +151,10 @@ class MQTTService(ClientService):
         # type_check(message['type'],long)
         s= typeDic.get(msg['type'])
         s(self, msg)
-    def addDataChannelHandlers(self, addDataChannel, removeDataChannel):
+    def addDataChannelHandlers(self, addDataChannel, removeDataChannel, pushCommand):
         self.addDataChannel = addDataChannel
         self.removeDataChannel = removeDataChannel
+        self.pushCommand = pushCommand
     def publish(self, topc, msg, q=1):
         self.protocol.publish(topic="SCC331", qos=1, message=msg)
 
