@@ -1,13 +1,14 @@
 import sys, jwt, logging
 from twisted.internet import protocol, reactor
-from autobahn.twisted.wamp import ApplicationRunner
+from mqtt.client.factory import MQTTFactory
+from twisted.internet.endpoints import clientFromString
 logger = logging.getLogger()
 from .db_handler import *
 # from .actuator_handler import *
 from .cache import *
 from .actuator_handler import *
 from .script_handler import *
-from .wamp_client import *
+from .mqtt_client import *
 from .ws_server import *
 class Pi:
     """
@@ -15,19 +16,19 @@ class Pi:
     """
     def __init__(self, args):
         pass
-    def start(self, start_websocket_server=True, start_wamp_client=True, websocket_port=8000, wamp_port=8080, cacheName='Penguins'):
+    def start(self, start_websocket_server=True, start_websocket_client=True, websocket_server_port=8000, websocket_client_port=1883, cacheName='Penguins'):
         # this function deals with most of the specifics that the pi can use
         if(not isValidCache(cacheName)):
             Cache(cacheName)
         self.cacheName  = cacheName
         self.createDB()
-        self.createActuators()
-        self.createScript()
         logger.info("Starting Pi services...")
         if start_websocket_server:
-            self.create_websocket_server(websocket_port)
-        if start_wamp_client:
-            self.create_wamp_client(wamp_port)
+            self.create_websocket_server(websocket_server_port)
+        if start_websocket_client:
+            self.create_websocket_client(websocket_client_port)
+        self.createActuators()
+        # self.createScript()
         logger.info("Started  All Pi services")
 
     def createDB(self):
@@ -40,8 +41,8 @@ class Pi:
     def createActuators(self):
         # this creates the Actuator Thread and adds the handler to the Pi
         logger.info("Initiaizing Pi Actuators...")
-        self.actHandler = ActuatorHandler(self.cacheName)
-        # self.actHandler.start()
+        self.actHandler = ActuatorHandler(self.cacheName, self.mqtt_service.sendMsg)
+        self.actHandler.start()
         logger.info("Initiaized Pi Actuators")
 
     def createScript(self):
@@ -66,16 +67,13 @@ class Pi:
         reactor.listenTCP(port,self.ws_server)
         logger.info("Started websocket server")
 
-    def create_wamp_client(self, port=8080, path=u'ws', realm=u'default', ip='192.168.0.109'):
+    def create_websocket_client(self, port=1883, path=u'ws', realm=u'default', ip='sccug-330-02.lancs.ac.uk'):
         # creates WAMP Server
-        logger.info("Starting WAMP client...")
-        wamp = WAMP()
-        url = u'ws://'+ip+':'+str(port)+'/'+path
-        s = ApplicationRunner(url, realm).run(wamp, start_reactor=False)
-        def help(gg):
-            self.wamp_client = wamp
-            self.wamp_client.set_broadcast(self.ws_server.broadcast,self.db.updateScripts)
-            self.wamp_client.protocol = gg
-
-            logger.info("Started WAMP client")
-        s.addCallback(help)
+        url = 'tcp:'+ip+':'+str(port)
+        print(url)
+        logger.info("Starting MQTT client...")
+        self.mqtt_client = MQTTFactory(profile=MQTTFactory.PUBLISHER | MQTTFactory.SUBSCRIBER)
+        # self.ws_client.set_broadcast(self.ws_server.broadcast,self.db.updateScripts)
+        self.mqtt_service = MQTTService(clientFromString(reactor,url),self.mqtt_client)
+        self.mqtt_service.startService()
+        logger.info("Started MQTT client")

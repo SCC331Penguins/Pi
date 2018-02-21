@@ -3,3 +3,4 @@ autobahn==17.10.1
 twisted==17.9.0
 PyJWT==1.5.3
 nmap==0.0.1
+twisted-mqtt==0.3.4
