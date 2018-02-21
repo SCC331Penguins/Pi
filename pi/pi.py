@@ -58,7 +58,11 @@ class Pi:
         # you are here when Ctrl C is pressed
 
     def addToDB(self, device_id, data):
-        self.db.push([device_id,data])
+        self.db.push({
+            'type':'SENSORDATA',
+            'device_id':device_id,
+            'data':data,
+        })
 
     def create_websocket_server(self, port):
         # creates WS Server

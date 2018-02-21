@@ -13,8 +13,8 @@ class DBHandler:
         self.cacheName = cacheName
         self.queue = Queue()
         self.workers = []
-    def push(self,dataAr):
-        self.queue.put(dataAr)
+    def push(self,evt):
+        self.queue.put(evt)
     def pull(self):
         return self.queue.get();
     def addWorkerThread(self):
@@ -23,7 +23,10 @@ class DBHandler:
         self.workers.append(t)
         t.start()
     def updateScripts(self, scripts):
-        self.queue.put(['updateScripts',scripts])
+        self.queue.put({
+            'type':'UPDATESCRIPTS',
+            'data':scripts,
+        })
     def start(self):
         self.addWorkerThread()
 
@@ -39,9 +42,13 @@ class DBWorker(Thread):
         self.cache = Cache(self.cacheName)
         logger.info('DB Thread Started')
         while True:
-            dataAr = self.db.pull()
-            if(dataAr[0]=='updateScripts'):
-                self.cache.updateScripts(dataAr[1])
+            evt = self.db.queue.get()
+            if(evt['type'] == 'UPDATESCRIPTS'):
+                self.cache.updateScripts(evt['data'])
+                logger.debug('Updated Scripts')
+            elif evt['type'] == 'SENSORDATA':
+                self.cache.addSensorData(evt['device_id'], evt['data'])
+                logger.debug('Added data for ' + evt['device_id'])
             else:
-                self.cache.addSensorData(dataAr[0],dataAr[1])
-            logger.debug('Added data for ' + dataAr[0])
+                logger.debug('invalid evt')
+            self.db.queue.task_done()
