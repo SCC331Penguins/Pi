@@ -13,7 +13,11 @@ class WSProtocol(WebSocketServerProtocol):
             return
         print payload
         data = loads(payload)
-        self.factory.addToDB(data['SENSORID'],data)
+        SENSORID = data['SENSORID']
+        self.factory.addToDB(SENSORID,data)
+        if SENSORID in self.factory.dataChannels:
+            for channel in self.factory.dataChannels:
+                self.factory.sendMQTTMessage(33,data,channel)
         # handle Photon Messages
         # if not isBinary:
         #     msg = "{} from {}".format(payload.decode('utf8'), self.peer)
@@ -31,12 +35,14 @@ class WSServerFactory(WebSocketServerFactory):
     Simple websocket server.with broadcast functionality
     """
 
-    def __init__(self, addToDB):
+    def __init__(self, addToDB, sendMQTTMessage):
         WebSocketServerFactory.__init__(self, u"ws://127.0.0.1:8000")
         self.clients = []
         self.tickcount = 0
         self.protocol = WSProtocol
         self.addToDB = addToDB
+        self.sendMQTTMessage = sendMQTTMessage
+        self.dataChannels = {}
     def register(self, client):
         if client not in self.clients:
             print("registered client {}".format(client.peer))
@@ -46,6 +52,17 @@ class WSServerFactory(WebSocketServerFactory):
         if client in self.clients:
             print("unregistered client {}".format(client.peer))
             self.clients.remove(client)
+
+    def addDataChannel(self, SENSORID, channel):
+        if self.dataChannels.get(SENSORID) is None:
+            self.dataChannels[SENSORID] = []
+        self.dataChannels.append(channel)
+
+    def removeDataChannel(self, SENSORID, channel):
+        if self.dataChannels.get(SENSORID) is None:
+            self.dataChannels[SENSORID] = []
+        if channel in self.dataChannels[SENSORID]:
+            self.dataChannels.remove(channel)
 
     def broadcast(self, msg):
         print("broadcasting message '{}' ..".format(msg))

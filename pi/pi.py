@@ -23,10 +23,10 @@ class Pi:
         self.cacheName  = cacheName
         self.createDB()
         logger.info("Starting Pi services...")
-        if start_websocket_server:
-            self.create_websocket_server(websocket_server_port)
         if start_websocket_client:
             self.create_websocket_client(websocket_client_port)
+        if start_websocket_server:
+            self.create_websocket_server(websocket_server_port)
         self.createActuators()
         # self.createScript()
         logger.info("Started  All Pi services")
@@ -53,6 +53,7 @@ class Pi:
         logger.info("Initiaized Pi Scripts Queue")
 
     def run(self):
+        self.link_client_to_server()
         reactor.run()
         # you are here when Ctrl C is pressed
 
@@ -62,7 +63,7 @@ class Pi:
     def create_websocket_server(self, port):
         # creates WS Server
         logger.info("Starting websocket server...")
-        self.ws_server = WSServerFactory(self.addToDB)
+        self.ws_server = WSServerFactory(self.addToDB, self.mqtt_service.sendMsg)
         self.ws_server.protocol = WSProtocol
         reactor.listenTCP(port,self.ws_server)
         logger.info("Started websocket server")
@@ -77,3 +78,5 @@ class Pi:
         self.mqtt_service = MQTTService(clientFromString(reactor,url),self.mqtt_client)
         self.mqtt_service.startService()
         logger.info("Started MQTT client")
+    def link_client_to_server(self):
+        self.mqtt_service.addDataChannelHandlers(self.ws_server.addDataChannel, self.ws_server.removeDataChannel)

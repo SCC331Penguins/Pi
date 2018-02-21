@@ -89,22 +89,22 @@ def turnOn(kettle):
     send_message(kettle['ip'], 2000, "set sys output 0x4\n")
 
 def turnOff(kettle):
-    send_message(kettle['ip'], 2000, "set sys output 0x0")
+    send_message(kettle['ip'], 2000, "set sys output 0x0\n")
 
 def set100C(kettle):
-    send_message(kettle['ip'], 2000, "set sys output 0x80")
+    send_message(kettle['ip'], 2000, "set sys output 0x80\n")
 
 def set95C(kettle):
-    send_message(kettle['ip'], 2000, "set sys output 0x2")
+    send_message(kettle['ip'], 2000, "set sys output 0x2\n\n")
 
 def set80C(kettle):
-    send_message(kettle['ip'], 2000, "set sys output 0x4000")
+    send_message(kettle['ip'], 2000, "set sys output 0x4000\n")
 
 def set65C(kettle):
-    send_message(kettle['ip'], 2000, "set sys output 0x200")
+    send_message(kettle['ip'], 2000, "set sys output 0x200\n")
 
 def setWarm(kettle):
-    send_message(kettle['ip'], 2000, "set sys output 0x8")
+    send_message(kettle['ip'], 2000, "set sys output 0x8\n")
 
 
 # ---- Lights Functions ----
@@ -142,10 +142,10 @@ def send_message_lights(number, mac):
 if __name__ == '__main__':
     print("Start")
     # send_message_lights("410","AC:CF:23:A1:FB:38")
-    send_message_lights("410","AC:CF:23:A1:FB:38")
+    # send_message_lights("420","AC:CF:23:A1:FB:38")
     kettle = {}
     kettle['ip'] = "192.168.0.102"
-    turnOn(kettle)
+    turnOff(kettle)
     # devices = findDevices()
     # print("Lights Off")
     # time.sleep(2)

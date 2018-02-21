@@ -10,5 +10,5 @@ logging.basicConfig(filename='pi.log',
 logging.getLogger().addHandler(logging.StreamHandler())
 
 p = Pi([])
-p.start(start_websocket_server=False)
+p.start()
 p.run()

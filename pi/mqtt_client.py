@@ -12,12 +12,14 @@ WiFiCreds = {
     "ssid":"SCC33X_2",
     "password": "!studiox?56"
 }
+
 def UPDATE_SENSORS(self, message):
     bmsg = ''
     for sensor in message['payload']:
         bmsg = bmsg + 'id:'+sensor['id']+' config:'+str(sensor['config'])+', '
     bmsg = bmsg[:-2]
     self.cb(bmsg)
+
 def SET_WIFI_CREDS(ctx, message):
     WiFiCreds = message.payload
 
@@ -27,9 +29,19 @@ def SCRIPTS_UPDATE(self, message):
         self.updateScripts(message['payload'])
     except Exception as e:
         print(e)
+
 def COMMAND(self, message):
     payload = message['payload']
     self.doCommand(payload['command'], payload['type'], payload['MAC'])
+
+def NEW_CHANNEL(self, message):
+    channelName = message['payload']
+    self.addChannel(channelName)
+def GIVE_DATA(self, message):
+    payload = message['payload']
+    self.addDataChannel(payload['SENSORID'], payload['CHANNELID'])
+def REMOVE_DATA(self, message):
+    self.removeDataChannel(payload['SENSORID'], payload['CHANNELID'])
 
 typeDic = {
 # 100:PING,
@@ -40,6 +52,9 @@ typeDic = {
 8:SCRIPTS_UPDATE,
 3:SET_WIFI_CREDS,
 64:COMMAND,
+54:NEW_CHANNEL,
+41:GIVE_DATA,
+42:REMOVE_DATA,
 }
 def err(err):
     print(err)
@@ -85,6 +100,10 @@ class MQTTService(ClientService):
             reactor.callLater(1,self.do_ping)
             logger.info("Connected to MQTT Server")
         self.sendMsg(100,0,topic='SCC331')
+
+    def addChannel(self, channel):
+        self.channels.append(channel)
+        self.protocol.subscribe(channel, 1 )
     def subscribe(self):
         for channel in self.channels:
             self.protocol.subscribe(channel, 1 )
@@ -126,7 +145,9 @@ class MQTTService(ClientService):
         # type_check(message['type'],long)
         s= typeDic.get(msg['type'])
         s(self, msg)
-
+    def addDataChannelHandlers(self, addDataChannel, removeDataChannel):
+        self.addDataChannel = addDataChannel
+        self.removeDataChannel = removeDataChannel
     def publish(self, topc, msg, q=1):
         self.protocol.publish(topic="SCC331", qos=1, message=msg)
 

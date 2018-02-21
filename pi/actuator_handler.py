@@ -37,9 +37,9 @@ class ActuatorWorker(Thread):
     """
     This uses the Actuators class to determine what Actuators are on the network this takes a long time so it is on its own thread
     """
-    def __init__(self,cacheName, db, send_actuators):
+    def __init__(self,cacheName, handler, send_actuators):
         Thread.__init__(self)
-        self.db = db
+        self.handler = handler
         self.cacheName = cacheName
         self.send_actuators = send_actuators
     def run(self):
@@ -47,12 +47,12 @@ class ActuatorWorker(Thread):
         logger.info('Actuator Thread Started')
         while True:
             var = 1
-            # var = self.db.pull()
+            # var = self.handler.pull()
             if(var == 1):
                 logger.info('doing Scan for Actuators')
                 actuators = findDevices()
                 self.send_actuators(91,actuators)
                 print(actuators)
                 logger.info('Sent Actuators')
-                self.db.setActuators(actuators)
+                self.handler.setActuators(actuators)
             logger.info('Added Actuators')
