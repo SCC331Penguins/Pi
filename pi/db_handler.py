@@ -43,6 +43,7 @@ class DBWorker(Thread):
         logger.info('DB Thread Started')
         while True:
             evt = self.db.queue.get()
+            print(evt)
             if(evt['type'] == 'UPDATESCRIPTS'):
                 self.cache.updateScripts(evt['data'])
                 logger.debug('Updated Scripts')

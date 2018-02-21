@@ -35,13 +35,13 @@ class WSServerFactory(WebSocketServerFactory):
     Simple websocket server.with broadcast functionality
     """
 
-    def __init__(self, addToDB, sendMQTTMessage):
+    def __init__(self, addToDB):
         WebSocketServerFactory.__init__(self, u"ws://127.0.0.1:8000")
         self.clients = []
         self.tickcount = 0
         self.protocol = WSProtocol
         self.addToDB = addToDB
-        self.sendMQTTMessage = sendMQTTMessage
+        self.sendMQTTMessage = None
         self.dataChannels = {}
     def register(self, client):
         if client not in self.clients:
@@ -52,7 +52,8 @@ class WSServerFactory(WebSocketServerFactory):
         if client in self.clients:
             print("unregistered client {}".format(client.peer))
             self.clients.remove(client)
-
+    def addMQTTCallback(self,sendMQTTMessage):
+        self.sendMQTTMessage = sendMQTTMessage
     def addDataChannel(self, SENSORID, channel):
         if self.dataChannels.get(SENSORID) is None:
             self.dataChannels[SENSORID] = []

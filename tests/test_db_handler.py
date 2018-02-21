@@ -30,8 +30,12 @@ class TestUtils(unittest.TestCase):
             sensorID = getGUID()
             sensorIDs.append(sensorID)
             j=0
-            while j <NumberOfDataPerSensor:
-                db.push([sensorID,getResponse(sensorID)])
+            while j < NumberOfDataPerSensor:
+                db.push({
+                    'type':'SENSORDATA',
+                    'device_id':sensorID,
+                    'data':getResponse(sensorID),
+                })
                 j+=1
             i+=1
         time.sleep(10) # i know this is bad practise but when running irl the main thread is in a loop

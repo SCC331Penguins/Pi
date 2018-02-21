@@ -16,15 +16,17 @@ class Pi:
     """
     def __init__(self, args):
         pass
-    def start(self, start_websocket_server=True, start_websocket_client=True, websocket_server_port=8000, websocket_client_port=1883, cacheName='Penguins'):
+    def start(self, start_websocket_server=True, start_mqtt_client=True, websocket_server_port=8000, mqtt_client_port=1883, cacheName='Penguins'):
         # this function deals with most of the specifics that the pi can use
         if(not isValidCache(cacheName)):
             Cache(cacheName)
         self.cacheName  = cacheName
         self.createDB()
+        self.start_websocket_server = start_websocket_server
+        self.start_mqtt_client = start_mqtt_client
         logger.info("Starting Pi services...")
-        if start_websocket_client:
-            self.create_websocket_client(websocket_client_port)
+        if start_mqtt_client:
+            self.create_mqtt_client(mqtt_client_port)
         if start_websocket_server:
             self.create_websocket_server(websocket_server_port)
         self.createActuators()
@@ -41,7 +43,10 @@ class Pi:
     def createActuators(self):
         # this creates the Actuator Thread and adds the handler to the Pi
         logger.info("Initiaizing Pi Actuators...")
-        self.actHandler = ActuatorHandler(self.cacheName, self.mqtt_service.sendMsg)
+        sendMsg = None
+        if(self.start_mqtt_client):
+            sendMsg =  self.mqtt_service.sendMsg
+        self.actHandler = ActuatorHandler(self.cacheName,sendMsg)
         self.actHandler.start()
         logger.info("Initiaized Pi Actuators")
 
@@ -67,12 +72,14 @@ class Pi:
     def create_websocket_server(self, port):
         # creates WS Server
         logger.info("Starting websocket server...")
-        self.ws_server = WSServerFactory(self.addToDB, self.mqtt_service.sendMsg)
+        self.ws_server = WSServerFactory(self.addToDB)
+        if(self.start_mqtt_client):
+            self.addMQTTCallback(self.mqtt_service.sendMsg)
         self.ws_server.protocol = WSProtocol
         reactor.listenTCP(port,self.ws_server)
         logger.info("Started websocket server")
 
-    def create_websocket_client(self, port=1883, path=u'ws', realm=u'default', ip='sccug-330-02.lancs.ac.uk'):
+    def create_mqtt_client(self, port=1883, path=u'ws', realm=u'default', ip='sccug-330-02.lancs.ac.uk'):
         # creates WAMP Server
         url = 'tcp:'+ip+':'+str(port)
         print(url)

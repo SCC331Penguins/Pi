@@ -10,7 +10,7 @@ class ActuatorHandler:
     """
     This Handles the Queue which The Worker pulls from in order to determine what Actuators are on the network
     """
-    def __init__(self, cacheName, send_actuators):
+    def __init__(self, cacheName, send_actuators=None):
         self.cacheName = cacheName
         self.queue = Queue()
         self.workers = []
@@ -51,7 +51,8 @@ class ActuatorWorker(Thread):
             if(var == 1):
                 logger.info('doing Scan for Actuators')
                 actuators = findDevices()
-                self.send_actuators(91,actuators)
+                if(self.send_actuators is not None):
+                    self.send_actuators(91,actuators)
                 print(actuators)
                 logger.info('Sent Actuators')
                 self.handler.setActuators(actuators)
