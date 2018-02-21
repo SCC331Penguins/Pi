@@ -28,7 +28,7 @@ class Pi:
         if start_websocket_server:
             self.create_websocket_server(websocket_server_port)
         self.createActuators()
-        # self.createScript()
+        self.createScript()
         logger.info("Started  All Pi services")
 
     def createDB(self):
@@ -83,4 +83,4 @@ class Pi:
         self.mqtt_service.startService()
         logger.info("Started MQTT client")
     def link_client_to_server(self):
-        self.mqtt_service.addDataChannelHandlers(self.ws_server.addDataChannel, self.ws_server.removeDataChannel)
+        self.mqtt_service.addDataChannelHandlers(self.ws_server.addDataChannel, self.ws_server.removeDataChannel, self.actHandler.pushCommand)

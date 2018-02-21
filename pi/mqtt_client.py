@@ -32,7 +32,13 @@ def SCRIPTS_UPDATE(self, message):
 
 def COMMAND(self, message):
     payload = message['payload']
-    self.doCommand(payload['command'], payload['type'], payload['MAC'])
+    pythonCode = """
+    for item in actuators:
+        if item['mac'] == '{}':
+            {}(item)
+    """.format(payload['MAC'],payload['command'])
+    print(pythonCode)
+    self.pushCommand(pythonCode)
 
 def NEW_CHANNEL(self, message):
     channelName = message['payload']
@@ -70,6 +76,8 @@ class MQTTService(ClientService):
         self.generate_token()
         self.channels = ['SCC3312']
         logger.info('WAMP Server Setup')
+    def pushCommand(command):
+        pass
 
     def startService(self):
         logger.info("starting MQTT Client Subscriber Service")

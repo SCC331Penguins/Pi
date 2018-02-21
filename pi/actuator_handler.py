@@ -46,8 +46,8 @@ class ActuatorWorker(Thread):
         self.cache = Cache(self.cacheName)
         logger.info('Actuator Thread Started')
         while True:
-            var = 1
-            # var = self.handler.pull()
+            # var = 1
+            var = self.handler.pull()
             if(var == 1):
                 logger.info('doing Scan for Actuators')
                 actuators = findDevices()

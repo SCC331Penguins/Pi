@@ -138,6 +138,24 @@ def send_message_lights(number, mac):
 #APPAC:CF:23:28:C2:2C
 #OKAC:CF:23:28:C2:2C
 
+ActuatorFunctions = {
+"turnOn":turnOn,
+"turnOff":turnOff,
+"set100C":set100C,
+"set95C":set95C,
+"set80C":set80C,
+"set65C":set65C,
+"setWarm":setWarm,
+"allLightsOn":allLightsOn,
+"allLightsOff":allLightsOff,
+"g1LightsOn":g1LightsOn,
+"g1LightsOff":g1LightsOff,
+"g2LightsOn":g2LightsOn,
+"g2LightsOff":g2LightsOff,
+"g3LightsOn":g3LightsOn,
+"g3LightsOff":g3LightsOff,
+"send_message_lights":send_message_lights,
+}
 
 if __name__ == '__main__':
     print("Start")
