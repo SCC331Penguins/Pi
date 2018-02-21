@@ -63,7 +63,7 @@ class ScriptWorker(Thread):
         print(self.scripts)
         for script in self.scripts:
             print(script)
-	    print(toValidScript(script))
+			# print(toValidScript(script))
             try:
                 # turnOnKettle("192.168.0.102")
                 # send_message_lights("420","AC:CF:23:A1:FB:38")

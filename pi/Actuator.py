@@ -1,11 +1,12 @@
 import nmap
 import socket
-
+import time
 # this is used to determine the actuators on the network
 criteria = [
     {
         'mac':'AC:CF:23',
         'type':'Lights',
+        'functions': ['allLightsOn','allLightsOff','g1LightsOn','g1LightsOff','g2LightsOn','g2LightsOff','g3LightsOn','g3LightsOff']
     },
     {
         'message':'HELLOKETTLE\n',
@@ -47,6 +48,10 @@ def scan(s):
                 pass
         except Exception as e:
             print (e)
+        for act in actuators:
+            for crit in criteria:
+                if crit['type'] == act['type']:
+                    act['functions'] = crit['functions']
     return actuators
 
 def verify_connection(ip, port, message, expected_reply):
@@ -69,7 +74,7 @@ def send_message(ip, port, message):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, port))
-        s.sendall(message)
+        s.sendall(message.encode())
         s.close()
     except Exception as e:
         print (e)
@@ -82,9 +87,6 @@ def findDevices():
 
 def turnOn(kettle):
     send_message(kettle.ip, 2000, "set sys output 0x4\n")
-
-def turnOnKettle(ip):
-    send_message(ip, 2000, "set sys output 0x4")
 
 def turnOff(kettle):
     send_message(kettle.ip, 2000, "set sys output 0x0")
@@ -139,5 +141,11 @@ def send_message_lights(number, mac):
 
 if __name__ == '__main__':
     print("Start")
+    # send_message_lights("410","AC:CF:23:A1:FB:38")
     send_message_lights("420","AC:CF:23:A1:FB:38")
-    #print(findDevices())
+    # devices = findDevices()
+    # print("Lights Off")
+    # time.sleep(2)
+    # for device in devices:
+        # if device['type'] == 'Lights':
+            # allLightsOff(device)

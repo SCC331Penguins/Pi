@@ -27,6 +27,9 @@ def SCRIPTS_UPDATE(self, message):
         self.updateScripts(message['payload'])
     except Exception as e:
         print(e)
+def COMMAND(self, message):
+	payload = message['payload']
+	self.doCommand(payload['command'], payload['type'], payload['MAC'])
 
 typeDic = {
 # 100:PING,
