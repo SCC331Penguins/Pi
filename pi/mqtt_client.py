@@ -32,10 +32,9 @@ def SCRIPTS_UPDATE(self, message):
 
 def COMMAND(self, message):
     payload = message['payload']
-    pythonCode = """
-    for item in actuators:
-        if item['mac'] == '{}':
-            {}(item)
+    pythonCode = """for item in actuators:
+    if item['mac'] == '{}':
+        {}(item)
     """.format(payload['MAC'],payload['command'])
     print(pythonCode)
     self.pushCommand(pythonCode)
@@ -74,7 +73,7 @@ class MQTTService(ClientService):
             open('id.json')
         )
         self.generate_token()
-        self.channels = ['SCC3312']
+        self.channels = ['SCC33102_R01']
         logger.info('WAMP Server Setup')
 
     def startService(self):
@@ -112,7 +111,7 @@ class MQTTService(ClientService):
         self.protocol.subscribe(channel, 1 )
     def subscribe(self):
         for channel in self.channels:
-            self.protocol.subscribe(channel, 1 )
+            self.protocol.subscribe(channel)
 
     def set_broadcast(self, cb, scripts):
         logger.info('WAMP now has broadcast ability')
@@ -150,13 +149,14 @@ class MQTTService(ClientService):
         type_check(msg,dict)
         # type_check(message['type'],long)
         s= typeDic.get(msg['type'])
-        s(self, msg)
+        if s is not None:
+            s(self, msg)
     def addDataChannelHandlers(self, addDataChannel, removeDataChannel, pushCommand):
         self.addDataChannel = addDataChannel
         self.removeDataChannel = removeDataChannel
         self.pushCommand = pushCommand
-    def publish(self, topc, msg, q=1):
-        self.protocol.publish(topic="SCC331", qos=1, message=msg)
+    def publish(self, topc, msg, q=2):
+        self.protocol.publish(topic=topc, qos=1, message=msg)
 
     def onDisconnection(self, reason):
         logger.info('Disconnected from WS Server ')

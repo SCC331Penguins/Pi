@@ -20,8 +20,8 @@ class ScriptHandler:
         self.actHandler = actHandler
     def push(self,dataAr):
         self.queue.put(dataAr)
-    def pushCommand(script):
-        self.queue.push(script)
+    def pushCommand(self,script):
+        self.queue.put(script)
     def pull(self):
         return self.queue.get()
 
@@ -58,16 +58,13 @@ class ScriptWorker(Thread):
                 self.count += 1
             self.count = 0
     def evaluateData(self):
-        print('Script Thread')
-
         actuators = self.actHandler.getActuators()
-        print(actuators)
         stateData = {'sensors': {"430032000f47353136383631":{"light":1.2}}, "actuators":actuators}
         stateData.update(ActuatorFunctions)
-        print(self.scripts)
+        if self.handler.queue.qsize() > 0:
+            print('executing....')
+            exec(self.handler.queue.get(),stateData)
         for script in self.scripts:
-            if len(self.handler.queue) > 0:
-                exec(self.handler.queue.get(),stateData)
 			# print(toValidScript(script))
             try:
                 # turnOnKettle("192.168.0.102")

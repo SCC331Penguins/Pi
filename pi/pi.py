@@ -74,7 +74,7 @@ class Pi:
         logger.info("Starting websocket server...")
         self.ws_server = WSServerFactory(self.addToDB)
         if(self.start_mqtt_client):
-            self.addMQTTCallback(self.mqtt_service.sendMsg)
+            self.ws_server.addMQTTCallback(self.mqtt_service.sendMsg)
         self.ws_server.protocol = WSProtocol
         reactor.listenTCP(port,self.ws_server)
         logger.info("Started websocket server")
