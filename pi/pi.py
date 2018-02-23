@@ -85,9 +85,9 @@ class Pi:
         print(url)
         logger.info("Starting MQTT client...")
         self.mqtt_client = MQTTFactory(profile=MQTTFactory.PUBLISHER | MQTTFactory.SUBSCRIBER)
-        # self.ws_client.set_broadcast(self.ws_server.broadcast,self.db.updateScripts)
         self.mqtt_service = MQTTService(clientFromString(reactor,url),self.mqtt_client)
         self.mqtt_service.startService()
         logger.info("Started MQTT client")
     def link_client_to_server(self):
+        self.mqtt_service.set_broadcast(self.ws_server.broadcast,self.db.updateScripts)
         self.mqtt_service.addDataChannelHandlers(self.ws_server.addDataChannel, self.ws_server.removeDataChannel, self.scripts.pushCommand)

@@ -108,7 +108,7 @@ class MQTTService(ClientService):
 
     def addChannel(self, channel):
         self.channels.append(channel)
-        self.protocol.subscribe(channel, 1 )
+        self.protocol.subscribe(str(channel))
     def subscribe(self):
         for channel in self.channels:
             self.protocol.subscribe(channel)

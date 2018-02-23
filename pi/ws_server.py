@@ -22,7 +22,7 @@ class WSProtocol(WebSocketServerProtocol):
         # if not isBinary:
         #     msg = "{} from {}".format(payload.decode('utf8'), self.peer)
         #     print(msg)
-        #     self.factory.broadcast(msg)
+        self.factory.broadcast(payload)
 
     def connectionLost(self, reason):
         WebSocketServerProtocol.connectionLost(self, reason)
