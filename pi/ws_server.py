@@ -17,7 +17,7 @@ class WSProtocol(WebSocketServerProtocol):
         self.factory.addToDB(SENSORID,data)
         if SENSORID in self.factory.dataChannels:
             for channel in self.factory.dataChannels:
-                self.factory.sendMQTTMessage(33,data,channel)
+                self.factory.sendMQTTMessage('DATA',data,channel)
         # handle Photon Messages
         # if not isBinary:
         #     msg = "{} from {}".format(payload.decode('utf8'), self.peer)

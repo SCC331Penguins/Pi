@@ -23,7 +23,7 @@ def UPDATE_SENSORS(self, message):
 def SET_WIFI_CREDS(ctx, message):
     WiFiCreds = message.payload
 
-def SCRIPTS_UPDATE(self, message):
+def UPDATE_SCRIPTS(self, message):
     logger.debug('Scripts Updating')
     try:
         self.updateScripts(message['payload'])
@@ -45,21 +45,21 @@ def NEW_CHANNEL(self, message):
 def GIVE_DATA(self, message):
     payload = message['payload']
     self.addDataChannel(payload['SENSORID'], payload['CHANNELID'])
-def REMOVE_DATA(self, message):
+def STOP_DATA(self, message):
     self.removeDataChannel(payload['SENSORID'], payload['CHANNELID'])
 
 typeDic = {
-# 100:PING,
-# 21:ACTIVE_SENSORS,
-# 33:DATA,
-# 91:REG_ACT,
-20:UPDATE_SENSORS,
-8:SCRIPTS_UPDATE,
-3:SET_WIFI_CREDS,
-64:COMMAND,
-54:NEW_CHANNEL,
-41:GIVE_DATA,
-42:REMOVE_DATA,
+# 'PING':PING,
+# 'ACTSEN':ACTIVE_SENSORS,
+# 'DATA':DATA,
+# 'REGACT':REG_ACT,
+'UPDSEN':UPDATE_SENSORS,
+'UPDSCR':UPDATE_SCRIPTS,
+'WIFICR':SET_WIFI_CREDS,
+'COM':COMMAND,
+'NCHAN':NEW_CHANNEL,
+'GDATA':GIVE_DATA,
+'SDATA':STOP_DATA,
 }
 def err(err):
     print(err)
@@ -104,7 +104,6 @@ class MQTTService(ClientService):
             print('yolo')
             reactor.callLater(1,self.do_ping)
             logger.info("Connected to MQTT Server")
-        self.sendMsg(100,0,topic='SCC331')
 
     def addChannel(self, channel):
         self.channels.append(channel)
@@ -126,10 +125,10 @@ class MQTTService(ClientService):
     #     # self.subscribe(self.onEvent,self._config['RouterID'])
     #     reactor.callLater(1,self.do_ping)
 
-    def sendMsg(self, typeInt, payload, topic=None, msgObject={}):
+    def sendMsg(self, typeStr, payload, topic=None, msgObject={}):
         if(topic == None):
             topic = self._config['RouterID']
-        msgObject[u'type'] = typeInt
+        msgObject[u'type'] = typeStr
         msgObject[u'payload'] = payload
         msgObject[u'token'] = self.token
         self.publish(topic,json.dumps(msgObject,ensure_ascii=False).encode())
@@ -137,7 +136,7 @@ class MQTTService(ClientService):
     def do_ping(self):
         logger.info('sent Ping')
         # self.publish(u"SCC33102_R01",{"source": 0, "token": 0, "type": 8, "payload": ["print%28%27hi+script%27%29", "print%28%27hi+script%27%29"]})
-        self.sendMsg(100,None)
+        self.sendMsg('PING',None)
         reactor.callLater(10,self.do_ping)
 
     def onPublish(self, topic, payload, qos, dup, retain, msgId):

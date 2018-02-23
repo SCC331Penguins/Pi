@@ -53,7 +53,7 @@ class ActuatorWorker(Thread):
             logger.info('doing Scan for Actuators')
             actuators = findDevices()
             if(self.send_actuators is not None):
-                self.send_actuators(91,actuators)
+                self.send_actuators('REGACT',actuators)
             print(actuators)
             logger.info('Sent Actuators')
             self.handler.setActuators(actuators)
