@@ -46,14 +46,15 @@ class ActuatorWorker(Thread):
         self.cache = Cache(self.cacheName)
         logger.info('Actuator Thread Started')
         while True:
+            # needs to be uncommented before release this makes it constantly refresh the Actuators with is very network heay
             # var = 1
-            var = self.handler.pull()
-            if(var == 1):
-                logger.info('doing Scan for Actuators')
-                actuators = findDevices()
-                if(self.send_actuators is not None):
-                    self.send_actuators(91,actuators)
-                print(actuators)
-                logger.info('Sent Actuators')
-                self.handler.setActuators(actuators)
+            # var = self.handler.pull()
+            # if(var == 1):
+            logger.info('doing Scan for Actuators')
+            actuators = findDevices()
+            if(self.send_actuators is not None):
+                self.send_actuators(91,actuators)
+            print(actuators)
+            logger.info('Sent Actuators')
+            self.handler.setActuators(actuators)
             logger.info('Added Actuators')
