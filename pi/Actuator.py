@@ -21,7 +21,7 @@ criteria = [
         'expected_reply': 'hello',
         'type': 'Plug',
         'request_type': 'get',
-        'functions': ['turnOn', 'turnOff', 'set100C', 'set95C', 'set80C', 'set65C', 'setWarm']
+        'functions': ['turn_on_plug', 'turn_off_plug', 'toggle_plug', 'get_plug_state']
     }
 ]
 def scan(s):
