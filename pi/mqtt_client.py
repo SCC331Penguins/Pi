@@ -42,11 +42,12 @@ def COMMAND(self, message):
 def NEW_CHANNEL(self, message):
     channelName = message['payload']
     self.addChannel(channelName)
+    self.sendMsg('YOPHO',{},topic=channelName)
 def GIVE_DATA(self, message):
     payload = message['payload']
-    self.addDataChannel(payload['SENSORID'], payload['CHANNELID'])
+    self.addDataChannel(payload['sensor_id'], payload['channel_id'])
 def STOP_DATA(self, message):
-    self.removeDataChannel(payload['SENSORID'], payload['CHANNELID'])
+    self.removeDataChannel(payload['sensor_id'], payload['channel_id'])
 
 typeDic = {
 # 'PING':PING,
@@ -103,9 +104,11 @@ class MQTTService(ClientService):
         else:
             print('yolo')
             reactor.callLater(1,self.do_ping)
+            self.doDBUpdate()
             logger.info("Connected to MQTT Server")
 
     def addChannel(self, channel):
+        logger.info(self.channels)
         self.channels.append(channel)
         self.protocol.subscribe(str(channel))
     def subscribe(self):
@@ -139,6 +142,10 @@ class MQTTService(ClientService):
         self.sendMsg('PING',None)
         reactor.callLater(10,self.do_ping)
 
+    def doDBUpdate(self):
+        self.db.updateSensorData()
+        reactor.callLater(60,self.doDBUpdate)
+
     def onPublish(self, topic, payload, qos, dup, retain, msgId):
         print payload
         print str(payload)
@@ -148,10 +155,12 @@ class MQTTService(ClientService):
         type_check(msg,dict)
         # type_check(message['type'],long)
         s= typeDic.get(msg['type'])
+        logger.info('received message of type: ' + msg['type']);
         if s is not None:
             s(self, msg)
-    def addDataChannelHandlers(self, addDataChannel, removeDataChannel, pushCommand):
+    def addDataChannelHandlers(self, addDataChannel, removeDataChannel, pushCommand, db):
         self.addDataChannel = addDataChannel
+        self.db = db
         self.removeDataChannel = removeDataChannel
         self.pushCommand = pushCommand
     def publish(self, topc, msg, q=2):

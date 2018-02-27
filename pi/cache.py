@@ -1,6 +1,6 @@
 import sys, os, sqlite3, urllib
 from HTMLParser import HTMLParser
-sensors = ['light', 'sound', 'UV', 'IR', 'temp', 'humid', 'tiltX', 'tiltY']
+sensors = ['light', 'sound', 'UV', 'IR', 'temp', 'motion', 'humid', 'tiltX', 'tiltY', 'timestamp']
 htmlParser = HTMLParser()
 def isValidCache(cacheName):
     if(os.path.isfile(cacheName)):
@@ -25,7 +25,7 @@ class Cache:
         if(new):
             cursor =self.conn.cursor()
             cursor.execute('''CREATE TABLE sensorData (
-                `id` INT AUTO_INCREMENT PRIMARY KEY,`SENSORID`,'''+','.join(sensors) + ')')
+                `id` INT AUTO_INCREMENT PRIMARY KEY,`SENSORID`,'''+','.join(sensors) + ',Sent )')
             cursor.execute('''CREATE TABLE scripts (
                 `id` INT AUTO_INCREMENT PRIMARY KEY,`script`)''')
 
@@ -56,7 +56,7 @@ class Cache:
                 toAdd.append(val)
             except ValueError:
                 return False
-        sql = 'INSERT INTO sensorData (SENSORID, '+','.join(sensors)+') VALUES(?,?,?,?,?,?,?,?,?)';
+        sql = 'INSERT INTO sensorData (SENSORID, '+','.join(sensors)+') VALUES(?,?,?,?,?,?,?,?,?,?,?)';
         cursor.execute(sql,toAdd)
         self.conn.commit()
         return True
@@ -74,7 +74,15 @@ class Cache:
             params.append(Limit)
         cursor.execute(sql,params)
         return cursor.fetchall()
-
+    def getSensorData(self):
+        # get sensorData from DB given a device_id
+        sql = "SELECT * FROM sensorData WHERE Sent='false'"
+        cursor = self.conn.cursor()
+        cursor.execute(sql)
+        data =  cursor.fetchall()
+        sql = "UPDATE sensorData SET Sent='true' WHERE Sent='false'"
+        cursor.execute(sql)
+        return data;
     def getScripts(self, Limit=None):
         # get all scripts
         if Limit<=0 and Limit != None:

@@ -21,7 +21,6 @@ class Pi:
         if(not isValidCache(cacheName)):
             Cache(cacheName)
         self.cacheName  = cacheName
-        self.createDB()
         self.start_websocket_server = start_websocket_server
         self.start_mqtt_client = start_mqtt_client
         logger.info("Starting Pi services...")
@@ -29,6 +28,7 @@ class Pi:
             self.create_mqtt_client(mqtt_client_port)
         if start_websocket_server:
             self.create_websocket_server(websocket_server_port)
+        self.createDB()
         self.createActuators()
         self.createScript()
         logger.info("Started  All Pi services")
@@ -36,7 +36,7 @@ class Pi:
     def createDB(self):
         # this creates the DB Thread and adds the handler to the Pi
         logger.info("Initiaizing Pi DB Queue...")
-        self.db = DBHandler(self.cacheName)
+        self.db = DBHandler(self.cacheName, self.mqtt_service.sendMsg)
         self.db.start()
         logger.info("Initiaized Pi DB Queue")
 
@@ -90,4 +90,4 @@ class Pi:
         logger.info("Started MQTT client")
     def link_client_to_server(self):
         self.mqtt_service.set_broadcast(self.ws_server.broadcast,self.db.updateScripts)
-        self.mqtt_service.addDataChannelHandlers(self.ws_server.addDataChannel, self.ws_server.removeDataChannel, self.scripts.pushCommand)
+        self.mqtt_service.addDataChannelHandlers(self.ws_server.addDataChannel, self.ws_server.removeDataChannel, self.scripts.pushCommand, self.db)
