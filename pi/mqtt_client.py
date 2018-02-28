@@ -33,6 +33,7 @@ def UPDATE_SCRIPTS(self, message):
 def COMMAND(self, message):
     payload = message['payload']
     pythonCode = """for item in actuators:
+    print(item)
     if item['mac'] == '{}':
         {}(item)
     """.format(payload['MAC'],payload['command'])

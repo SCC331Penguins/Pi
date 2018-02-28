@@ -21,7 +21,7 @@ class WSProtocol(WebSocketServerProtocol):
         logger.info('dataChannels: '+dumps(self.factory.dataChannels));
         if SENSORID == "GAME":
             self.factory.gameClients.append(self)
-            # return
+            return
         self.factory.addToDB(SENSORID,data)
         if SENSORID in self.factory.dataChannels:
             for channel in self.factory.dataChannels[SENSORID]:

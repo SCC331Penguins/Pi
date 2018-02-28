@@ -1,7 +1,8 @@
-import sys, os, sqlite3, urllib
+import sys, os, sqlite3, urllib, logging
 from HTMLParser import HTMLParser
-sensors = ['light', 'sound', 'UV', 'IR', 'temp', 'motion', 'humid', 'tiltX', 'tiltY', 'timestamp']
+sensors = ['light', 'sound', 'UV', 'IR', 'temp', 'motion', 'humid', 'tiltX', 'tiltY', 'time']
 htmlParser = HTMLParser()
+logger = logging.getLogger()
 def isValidCache(cacheName):
     if(os.path.isfile(cacheName)):
         return True
@@ -22,15 +23,22 @@ class Cache:
             except OSError:
                 pass
         self.conn = sqlite3.connect(file)
+        self.conn.row_factory = self.dict_factory
         if(new):
             cursor =self.conn.cursor()
             cursor.execute('''CREATE TABLE sensorData (
-                `id` INT AUTO_INCREMENT PRIMARY KEY,`SENSORID`,'''+','.join(sensors) + ',Sent )')
+                `id` INT AUTO_INCREMENT PRIMARY KEY,`SENSORID`,'''+','.join(sensors) + ' )')
             cursor.execute('''CREATE TABLE scripts (
                 `id` INT AUTO_INCREMENT PRIMARY KEY,`script`)''')
 
             self.conn.commit()
         pass
+    def dict_factory(self, cursor, row):
+        d = {}
+        for idx,col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+        return d
+
     def updateScripts(self, scripts):
         # DELETE ALL Scripts and INSERT new Scripts
         sql = ''' DELETE FROM scripts; '''
@@ -44,9 +52,9 @@ class Cache:
         pass
     def addSensorData(self, device_id, data):
         # INSERTs into sensorData table
+        cursor = self.conn.cursor()
         toAdd = []
         toAdd.append(device_id)
-        cursor = self.conn.cursor()
         for sensor in sensors:
             try:
                 val = data.get(sensor,'NULL')
@@ -57,6 +65,7 @@ class Cache:
             except ValueError:
                 return False
         sql = 'INSERT INTO sensorData (SENSORID, '+','.join(sensors)+') VALUES(?,?,?,?,?,?,?,?,?,?,?)';
+        logger.info(toAdd)
         cursor.execute(sql,toAdd)
         self.conn.commit()
         return True
@@ -74,14 +83,19 @@ class Cache:
             params.append(Limit)
         cursor.execute(sql,params)
         return cursor.fetchall()
-    def getSensorData(self):
+    def getLastTime(self):
         # get sensorData from DB given a device_id
-        sql = "SELECT * FROM sensorData WHERE Sent='false'"
+        sql = "SELECT time FROM sensorData WHERE time NOT NULL  ORDER BY time DESC LIMIT 1;"
         cursor = self.conn.cursor()
         cursor.execute(sql)
-        data =  cursor.fetchall()
-        sql = "UPDATE sensorData SET Sent='true' WHERE Sent='false'"
+        return cursor.fetchone()
+
+    def getSensorData(self):
+        # get sensorData from DB given a device_id
+        sql = "SELECT * FROM sensorData WHERE time%(5*60) = 0";
+        cursor = self.conn.cursor()
         cursor.execute(sql)
+        data = cursor.fetchall()
         return data;
     def getScripts(self, Limit=None):
         # get all scripts

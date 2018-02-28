@@ -43,9 +43,14 @@ class DBWorker(Thread):
         Thread.__init__(self)
         self.db = db
         self.cacheName = cacheName
+        self.lastTime = None
     def run(self):
         self.cache = Cache(self.cacheName)
+        self.lastTime = self.cache.getLastTime()
+
         logger.info('DB Thread Started')
+        logger.info(self.lastTime)
+
         while True:
             evt = self.db.queue.get()
             print(evt)
@@ -53,11 +58,13 @@ class DBWorker(Thread):
                 self.cache.updateScripts(evt['data'])
                 logger.debug('Updated Scripts')
             elif evt['type'] == 'SENSORDATA':
-                self.cache.addSensorData(evt['device_id'], evt['data'])
+                if(evt['data']['time']%30 == 0):
+                    self.cache.addSensorData(evt['device_id'], evt['data'])
                 logger.debug('Added data for ' + evt['device_id'])
             elif evt['type'] == 'UPDATESENSORS':
                 data = self.cache.getSensorData()
-                self.db.sendMsg('DATA',data)
+                logger.info(data)
+                self.db.sendMsg('DATA',{"sensors":data})
             else:
                 logger.debug('invalid evt')
             self.db.queue.task_done()
