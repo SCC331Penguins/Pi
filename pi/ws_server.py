@@ -14,18 +14,14 @@ class WSProtocol(WebSocketServerProtocol):
         # in here maybe append payload to a structure for analysis and run analysis
         if isBinary:
             return
-        print payload
         data = loads(payload)
         SENSORID = data['SENSORID']
-        logger.info('SENSORID: '+SENSORID);
-        logger.info('dataChannels: '+dumps(self.factory.dataChannels));
         if SENSORID == "GAME":
             self.factory.gameClients.append(self)
             return
         self.factory.addToDB(SENSORID,data)
         if SENSORID in self.factory.dataChannels:
             for channel in self.factory.dataChannels[SENSORID]:
-                logger.info('sending to '+channel)
                 self.factory.sendMQTTMessage('DATA',data,channel)
         self.factory.broadcastToGame(payload)
 
@@ -72,12 +68,8 @@ class WSServerFactory(WebSocketServerFactory):
             self.dataChannels[SENSORID].remove(channel)
 
     def broadcast(self, msg):
-        print("broadcasting message '{}' ..".format(msg))
         for c in self.clients:
             c.sendMessage(msg.encode('utf8'))
-            print("message sent to {}".format(c.peer))
     def broadcastToGame(self, msg):
-        print("broadcasting message To Game Clients '{}' ..".format(msg))
         for c in self.gameClients:
             c.sendMessage(msg.encode('utf8'))
-            print("message sent to {}".format(c.peer))

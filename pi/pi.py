@@ -1,4 +1,4 @@
-import sys, jwt, logging
+import sys, jwt, logging, time
 from twisted.internet import protocol, reactor
 from mqtt.client.factory import MQTTFactory
 from twisted.internet.endpoints import clientFromString
@@ -29,7 +29,7 @@ class Pi:
         if start_websocket_server:
             self.create_websocket_server(websocket_server_port)
         self.createDB()
-        self.createActuators()
+        # self.createActuators()
         self.createScript()
         logger.info("Started  All Pi services")
 
@@ -53,7 +53,7 @@ class Pi:
     def createScript(self):
         # this creates the Script Thread and adds the handler to the Pi
         logger.info("Initiaizing Pi Scripts Queue...")
-        self.scripts = ScriptHandler(self.cacheName,self.actHandler)
+        self.scripts = ScriptHandler(self.cacheName,self.actHandler, self.mqtt_service)
         self.scripts.start()
         logger.info("Initiaized Pi Scripts Queue")
 
@@ -87,6 +87,7 @@ class Pi:
         self.mqtt_client = MQTTFactory(profile=MQTTFactory.PUBLISHER | MQTTFactory.SUBSCRIBER)
         self.mqtt_service = MQTTService(clientFromString(reactor,url),self.mqtt_client)
         self.mqtt_service.startService()
+        self.createActuators()
         logger.info("Started MQTT client")
     def link_client_to_server(self):
         self.mqtt_service.set_broadcast(self.ws_server.broadcast,self.db.updateScripts)

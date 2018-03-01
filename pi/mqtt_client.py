@@ -32,11 +32,18 @@ def UPDATE_SCRIPTS(self, message):
 
 def COMMAND(self, message):
     payload = message['payload']
-    pythonCode = """for item in actuators:
-    print(item)
-    if item['mac'] == '{}':
-        {}(item)
-    """.format(payload['MAC'],payload['command'])
+    pythonCode = ""
+    if(payload['command']=='sendNotification'):
+        pythonCode = """for item in actuators:
+        if item['mac'] == '{}':
+            {}(item,'{}')
+        """.format(payload['MAC'],payload['command'], payload['message'])
+    else:
+        pythonCode = """for item in actuators:
+        print(item)
+        if item['mac'] == '{}':
+            {}(item)
+        """.format(payload['MAC'],payload['command'])
     print(pythonCode)
     self.pushCommand(pythonCode)
 
@@ -148,11 +155,7 @@ class MQTTService(ClientService):
         reactor.callLater(60,self.doDBUpdate)
 
     def onPublish(self, topic, payload, qos, dup, retain, msgId):
-        print payload
-        print str(payload)
         msg = json.loads(str(payload))
-        logger.info('received'+ payload)
-        print(type(msg))
         type_check(msg,dict)
         # type_check(message['type'],long)
         s= typeDic.get(msg['type'])

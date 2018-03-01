@@ -1,6 +1,9 @@
-import nmap
+import nmap, logging
+import paho.mqtt.client as mqtt
 import socket
 import time
+from json import dumps
+logger = logging.getLogger()
 # this is used to determine the actuators on the network
 criteria = [
     {
@@ -52,7 +55,11 @@ def scan(s):
             for crit in criteria:
                 if crit['type'] == act['type']:
                     act['functions'] = crit['functions']
+    actuators.append(getVirtualActuators())
     return actuators
+
+def getVirtualActuators():
+    return {'type':'notifications', 'ip':'localhost','mac':'NOTIFICATIONS', 'functions':['sendNotification'] }
 
 def verify_connection(ip, port, message, expected_reply):
     try:
@@ -81,9 +88,26 @@ def send_message(ip, port, message):
 
 # ---- Kettle Functions ----
 def findDevices():
+        logger.debug("finding Devices")
         nm = nmap.PortScanner()
+        # s = []
+        # logger.info("finished Devices scan doing parse")
+        # time.sleep(3)
+        # s.append(getVirtualActuators())
+        # return s
         s = nm.scan(hosts="192.168.0.0/24", arguments='-T4 -F')
         return scan(s)
+def sendNotification(notifObj, msg):
+    client = mqtt.Client()
+    client.connect("sccug-330-02.lancs.ac.uk",1883,60)
+    json = {
+    'type':'NOTIF',
+    'token':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlNDQzMzMTAyX1IwMSJ9.XopN05KKB6am2sbuEl9kXPji-Z11bgxK8MdzAac1XPw',
+    'payload':{"message":msg}
+    }
+    client.publish('SCC33102_R01', dumps(json))
+    # time.sleep(30)
+    client.disconnect()
 
 def turnOn(kettle):
     send_message(kettle['ip'], 2000, "set sys output 0x4\n")
@@ -155,6 +179,7 @@ ActuatorFunctions = {
 "g3LightsOn":g3LightsOn,
 "g3LightsOff":g3LightsOff,
 "send_message_lights":send_message_lights,
+"sendNotification":sendNotification,
 }
 
 if __name__ == '__main__':

@@ -58,14 +58,12 @@ class Cache:
         for sensor in sensors:
             try:
                 val = data.get(sensor,'NULL')
-                print(val)
                 if(val != 'NULL' and val != None and sensor!= "SENSORID"):
                     val = float(val)
                 toAdd.append(val)
             except ValueError:
                 return False
         sql = 'INSERT INTO sensorData (SENSORID, '+','.join(sensors)+') VALUES(?,?,?,?,?,?,?,?,?,?,?)';
-        logger.info(toAdd)
         cursor.execute(sql,toAdd)
         self.conn.commit()
         return True

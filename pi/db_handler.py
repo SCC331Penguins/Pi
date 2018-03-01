@@ -63,7 +63,6 @@ class DBWorker(Thread):
                 logger.debug('Added data for ' + evt['device_id'])
             elif evt['type'] == 'UPDATESENSORS':
                 data = self.cache.getSensorData()
-                logger.info(data)
                 self.db.sendMsg('DATA',{"sensors":data})
             else:
                 logger.debug('invalid evt')

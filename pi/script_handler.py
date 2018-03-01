@@ -13,14 +13,16 @@ class ScriptHandler:
     """
     This Handles the Queue which The Worker pulls from in order to determine what Scripts get updated
     """
-    def __init__(self, cacheName, actHandler):
+    def __init__(self, cacheName, actHandler, mqttClient):
         self.cacheName = cacheName
         self.queue = Queue()
         self.workers = []
         self.actHandler = actHandler
+        self.mqttClient = mqttClient
     def push(self,dataAr):
         self.queue.put(dataAr)
     def pushCommand(self,script):
+        print(45)
         self.queue.put(script)
     def pull(self):
         return self.queue.get()
@@ -63,6 +65,7 @@ class ScriptWorker(Thread):
         stateData.update(ActuatorFunctions)
         if self.handler.queue.qsize() > 0:
             print('executing....')
+            print(actuators)
             exec(self.handler.queue.get(),stateData)
         for script in self.scripts:
 			# print(toValidScript(script))
