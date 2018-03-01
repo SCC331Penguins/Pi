@@ -3,6 +3,7 @@ import paho.mqtt.client as mqtt
 import socket
 import time
 from json import dumps
+import http.client
 logger = logging.getLogger()
 # this is used to determine the actuators on the network
 criteria = [
@@ -17,6 +18,14 @@ criteria = [
         'port':2000,
         'type':'Kettle',
         'functions': ['turnOn','turnOff','set100C','set95C','set80C','set65C','setWarm']
+    },
+    {
+        'message': 'hello',
+        'expected_reply': 'hello',
+        'type': 'Plug',
+        'port':2000,
+        'request_type': 'get',
+        'functions': ['turn_on_plug', 'turn_off_plug', 'toggle_plug', 'get_plug_state']
     }
 ]
 def scan(s):
@@ -42,11 +51,18 @@ def scan(s):
                         obj['mac'] = mac
                         actuators.append(obj)
                     if("port" in target.keys() and target["port"] in s['scan'][ip]['tcp']):
-                        obj = {}
-                        obj['type'] = target['type']
-                        obj['ip'] = ip
-                        obj['mac'] = mac
-                        actuators.append(obj)
+                        if(verify_plug(ip,target["request_type"],target["message"], target["expected_reply"])):
+                            obj = {}
+                            obj['type'] = 'Plug'
+                            obj['ip'] = ip
+                            obj['mac'] = mac
+                            actuators.append(obj)
+                        elif(verify_connection(ip, target["port"], target['message'], target['expected_reply'])):
+                            obj = {}
+                            obj['type'] = "Kettle"
+                            obj['ip'] = ip
+                            obj['mac'] = mac
+                            actuators.append(obj)
             else:
                 pass
         except Exception as e:
@@ -162,6 +178,37 @@ def send_message_lights(number, mac):
 #APPAC:CF:23:28:C2:2C
 #OKAC:CF:23:28:C2:2C
 
+# ---- Plug Functions ----
+def verify_plug(ip,request_type,message,expected_reply):
+    try:
+        r = requests.get('http://'+ip+'/cgi-bin/json.cgi?'+request_type+'='+message)
+        content = r.text
+        content = content[:len(content)-1]
+        print(content)
+        return expected_reply == content
+    except Exception as e:
+        print (e)
+        return False
+
+# create objects??
+
+def turn_on_plug(ip):
+    requests.get('http://' + ip + '/cgi-bin/json.cgi?set=on')
+
+def turn_off_plug(ip):
+    requests.get('http://' + ip + '/cgi-bin/json.cgi?set=off')
+
+def toggle_plug(ip):
+    requests.get('http://' + ip + '/cgi-bin/json.cgi?set=toggle')
+
+def get_plug_state(ip):
+    r = requests.get('http://' + ip + '/cgi-bin/json.cgi?get=state')
+    content = r.text
+    content = content[:len(content) - 1]
+    print(content)
+    return content
+
+
 ActuatorFunctions = {
 "turnOn":turnOn,
 "turnOff":turnOff,
@@ -180,6 +227,10 @@ ActuatorFunctions = {
 "g3LightsOff":g3LightsOff,
 "send_message_lights":send_message_lights,
 "sendNotification":sendNotification,
+"turn_on_plug":turn_on_plug,
+"turn_off_plug":turn_off_plug,
+"toggle_plug":toggle_plug,
+"get_plug_state":get_plug_state,
 }
 
 if __name__ == '__main__':
