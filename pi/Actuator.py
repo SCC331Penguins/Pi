@@ -3,7 +3,7 @@ import paho.mqtt.client as mqtt
 import socket
 import time
 from json import dumps
-import http.client
+import requests
 logger = logging.getLogger()
 # this is used to determine the actuators on the network
 criteria = [
