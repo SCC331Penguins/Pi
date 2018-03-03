@@ -26,6 +26,7 @@ def SET_WIFI_CREDS(ctx, message):
 def UPDATE_SCRIPTS(self, message):
     logger.debug('Scripts Updating')
     try:
+        logger.info('UPDATE_SCRIPTS')
         self.updateScripts(message['payload'])
     except Exception as e:
         print(e)
@@ -36,6 +37,7 @@ def COMMAND(self, message):
     if(payload['command']=='sendNotification'):
         pythonCode = """for item in actuators:
         if item['mac'] == '{}':
+            print('this')
             {}(item,'{}')
         """.format(payload['MAC'],payload['command'], payload['message'])
     else:
@@ -50,6 +52,7 @@ def COMMAND(self, message):
 def NEW_CHANNEL(self, message):
     channelName = message['payload']
     self.addChannel(channelName)
+    time.sleep(3)
     self.sendMsg('YOPHO',{},topic=channelName)
 def GIVE_DATA(self, message):
     payload = message['payload']

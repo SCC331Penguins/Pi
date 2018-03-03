@@ -1,4 +1,4 @@
-import logging
+import logging, time
 from Queue import Queue
 from threading import Thread
 from .cache import *
@@ -51,8 +51,10 @@ class ScriptWorker(Thread):
     def run(self):
         self.cache = Cache(self.cacheName)
         logger.info('Script Thread Started')
+        time.sleep(10)
         while True:
-            self.scripts = self.cache.getScripts()
+            self.scripts = []
+            # self.scripts = self.cache.getScripts()
             while self.count < DATA_COUNT_BEFORE_REFRESH:
                 # newData = self.handler.pull()
                 # self.data.update(newData)

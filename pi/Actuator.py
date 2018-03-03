@@ -105,14 +105,40 @@ def send_message(ip, port, message):
 # ---- Kettle Functions ----
 def findDevices():
         logger.debug("finding Devices")
-        nm = nmap.PortScanner()
+        # nm = nmap.PortScanner()
         # s = []
         # logger.info("finished Devices scan doing parse")
-        # time.sleep(3)
+        time.sleep(3)
         # s.append(getVirtualActuators())
         # return s
-        s = nm.scan(hosts="192.168.0.0/24", arguments='-T4 -F')
-        return scan(s)
+        # s = nm.scan(hosts="192.168.0.0/24", arguments='-T4 -F')
+        # return scan(s)
+        return [
+          {
+          'type':'notifications',
+          'ip':'localhost',
+          'mac':'NOTIFICATIONS',
+          'functions':['sendNotification']
+          },
+          {
+          'type':'Kettle',
+          'ip':'192.168.0.114',
+          'mac':'CC:D2:9B:F4:41:2E',
+          'functions': ['turnOn','turnOff','set100C','set95C','set80C','set65C','setWarm']
+          },
+          {
+          'type':'Lights',
+          'ip':'192.168.0.101',
+          'mac':'AC:CF:23:28:C2:2C',
+          'functions':['allLightsOn','allLightsOff','g1LightsOn','g1LightsOff','g2LightsOn','g2LightsOff','g3LightsOn','g3LightsOff']
+          },
+          {
+          'type':'Plug',
+          'ip':'192.168.0.108',
+          'mac':'00:15:61:F1:83:DE',
+          'functions':['turn_on_plug', 'turn_off_plug', 'toggle_plug', 'get_plug_state']
+          },
+        ];
 def sendNotification(notifObj, msg):
     client = mqtt.Client()
     client.connect("sccug-330-02.lancs.ac.uk",1883,60)
@@ -193,16 +219,16 @@ def verify_plug(ip,request_type,message,expected_reply):
 # create objects??
 
 def turn_on_plug(ip):
-    requests.get('http://' + ip + '/cgi-bin/json.cgi?set=on')
+    requests.get('http://' + ip['ip'] + '/cgi-bin/json.cgi?set=on')
 
 def turn_off_plug(ip):
-    requests.get('http://' + ip + '/cgi-bin/json.cgi?set=off')
+    requests.get('http://' + ip['ip'] + '/cgi-bin/json.cgi?set=off')
 
 def toggle_plug(ip):
-    requests.get('http://' + ip + '/cgi-bin/json.cgi?set=toggle')
+    requests.get('http://' + ip['ip'] + '/cgi-bin/json.cgi?set=toggle')
 
 def get_plug_state(ip):
-    r = requests.get('http://' + ip + '/cgi-bin/json.cgi?get=state')
+    r = requests.get('http://' + ip['ip'] + '/cgi-bin/json.cgi?get=state')
     content = r.text
     content = content[:len(content) - 1]
     print(content)

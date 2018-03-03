@@ -108,7 +108,7 @@ class Cache:
         cursor.execute(sql,params)
         its = []
         for item in cursor.fetchall():
-            its.append(item[1])
+            its.append(item['script'])
         return its
     def close(self):
         self.conn.close()
