@@ -32,8 +32,6 @@ def scan(s):
     #myIp = socket.gethostbyname(socket.gethostname()) # doesnt work on pi
     actuators = []
     # show all iOS devices in ip range
-    #print (s.get())
-    print(s)
     for ip in s["scan"]:
         currentGuess = None
         mac = None
@@ -66,7 +64,7 @@ def scan(s):
             else:
                 pass
         except Exception as e:
-            print (e)
+            logger.error(e)
         for act in actuators:
             for crit in criteria:
                 if crit['type'] == act['type']:
@@ -85,11 +83,9 @@ def verify_connection(ip, port, message, expected_reply):
         s.sendall(message)
         data = s.recv(1024)
         s.close()
-        # use repr() ?
-        print(data)
         return data == expected_reply
     except Exception as e:
-        print (e)
+        logger.error(e)
         return False
 
 # without expected reply
@@ -100,7 +96,7 @@ def send_message(ip, port, message):
         s.sendall(message.encode())
         s.close()
     except Exception as e:
-        print (e)
+        logger.error(e)
 
 # ---- Kettle Functions ----
 def findDevices():
@@ -142,6 +138,7 @@ def findDevices():
 def sendNotification(notifObj, msg):
     client = mqtt.Client()
     client.connect("sccug-330-02.lancs.ac.uk",1883,60)
+    # token shouldn't be hardcoded
     json = {
     'type':'NOTIF',
     'token':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IlNDQzMzMTAyX1IwMSJ9.XopN05KKB6am2sbuEl9kXPji-Z11bgxK8MdzAac1XPw',
@@ -210,10 +207,10 @@ def verify_plug(ip,request_type,message,expected_reply):
         r = requests.get('http://'+ip+'/cgi-bin/json.cgi?'+request_type+'='+message)
         content = r.text
         content = content[:len(content)-1]
-        print(content)
+        logger.debug(content)
         return expected_reply == content
     except Exception as e:
-        print (e)
+        logger.error(e)
         return False
 
 # create objects??
@@ -231,7 +228,7 @@ def get_plug_state(ip):
     r = requests.get('http://' + ip['ip'] + '/cgi-bin/json.cgi?get=state')
     content = r.text
     content = content[:len(content) - 1]
-    print(content)
+    logger.info('Plug state: '+content)
     return content
 
 
@@ -260,15 +257,8 @@ ActuatorFunctions = {
 }
 
 if __name__ == '__main__':
-    print("Start")
     # send_message_lights("410","AC:CF:23:A1:FB:38")
     # send_message_lights("420","AC:CF:23:A1:FB:38")
     kettle = {}
     kettle['ip'] = "192.168.0.102"
     turnOff(kettle)
-    # devices = findDevices()
-    # print("Lights Off")
-    # time.sleep(2)
-    # for device in devices:
-        # if device['type'] == 'Lights':
-            # allLightsOff(device)

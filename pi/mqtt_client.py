@@ -29,7 +29,7 @@ def UPDATE_SCRIPTS(self, message):
         logger.info('UPDATE_SCRIPTS')
         self.updateScripts(message['payload'])
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 def COMMAND(self, message):
     payload = message['payload']
@@ -37,16 +37,14 @@ def COMMAND(self, message):
     if(payload['command']=='sendNotification'):
         pythonCode = """for item in actuators:
         if item['mac'] == '{}':
-            print('this')
             {}(item,'{}')
         """.format(payload['MAC'],payload['command'], payload['message'])
     else:
         pythonCode = """for item in actuators:
-        print(item)
         if item['mac'] == '{}':
             {}(item)
         """.format(payload['MAC'],payload['command'])
-    print(pythonCode)
+    logger.debug(pythonCode)
     self.pushCommand(pythonCode)
 
 def NEW_CHANNEL(self, message):
@@ -74,7 +72,7 @@ typeDic = {
 'SDATA':STOP_DATA,
 }
 def err(err):
-    print(err)
+    logger.error(err)
 
 class MQTTService(ClientService):
     def __init__(self, endpoint, factory):
@@ -113,7 +111,6 @@ class MQTTService(ClientService):
             logger.error("Connecting to {broker} raised {excp!s}",
                broker="f", excp=e)
         else:
-            print('yolo')
             reactor.callLater(1,self.do_ping)
             self.doDBUpdate()
             logger.info("Connected to MQTT Server")

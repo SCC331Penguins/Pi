@@ -56,7 +56,7 @@ class ActuatorWorker(Thread):
             if(self.send_actuators is not None):
                 pass
                 # self.send_actuators('REGACT',actuators)
-            print(actuators)
+            logger.info(actuators)
             logger.info('Sent Actuators')
             self.handler.setActuators(actuators)
             logger.info('Added Actuators')

@@ -22,7 +22,6 @@ class ScriptHandler:
     def push(self,dataAr):
         self.queue.put(dataAr)
     def pushCommand(self,script):
-        print(45)
         self.queue.put(script)
     def pull(self):
         return self.queue.get()
@@ -66,15 +65,14 @@ class ScriptWorker(Thread):
         stateData = {'sensors': {"430032000f47353136383631":{"light":1.2}}, "actuators":actuators}
         stateData.update(ActuatorFunctions)
         if self.handler.queue.qsize() > 0:
-            print('executing....')
-            print(actuators)
+            logger.info('executing....')
+            logger.info(actuators)
             exec(self.handler.queue.get(),stateData)
         for script in self.scripts:
-			# print(toValidScript(script))
             try:
                 # turnOnKettle("192.168.0.102")
                 # send_message_lights("420","AC:CF:23:A1:FB:38")
                 exec(toValidScript(script), stateData)
             except Exception as e:
-                print(e)
+                logger.error(e)
                 pass

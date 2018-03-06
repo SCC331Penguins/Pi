@@ -82,7 +82,6 @@ class Pi:
     def create_mqtt_client(self, port=1883, path=u'ws', realm=u'default', ip='sccug-330-02.lancs.ac.uk'):
         # creates WAMP Server
         url = 'tcp:'+ip+':'+str(port)
-        print(url)
         logger.info("Starting MQTT client...")
         self.mqtt_client = MQTTFactory(profile=MQTTFactory.PUBLISHER | MQTTFactory.SUBSCRIBER)
         self.mqtt_service = MQTTService(clientFromString(reactor,url),self.mqtt_client)

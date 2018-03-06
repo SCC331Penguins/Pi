@@ -53,7 +53,8 @@ class DBWorker(Thread):
 
         while True:
             evt = self.db.queue.get()
-            print(evt)
+            logger.debug('DBWorker got event')
+            logger.debug(evt)
             if(evt['type'] == 'UPDATESCRIPTS'):
                 self.cache.updateScripts(evt['data'])
                 logger.debug('Updated Scripts')

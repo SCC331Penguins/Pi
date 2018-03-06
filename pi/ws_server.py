@@ -47,12 +47,12 @@ class WSServerFactory(WebSocketServerFactory):
         self.dataChannels = {}
     def register(self, client):
         if client not in self.clients:
-            print("registered client {}".format(client.peer))
+            logger.info("registered client {}".format(client.peer))
             self.clients.append(client)
 
     def unregister(self, client):
         if client in self.clients:
-            print("unregistered client {}".format(client.peer))
+            logger.info("unregistered client {}".format(client.peer))
             self.clients.remove(client)
     def addMQTTCallback(self,sendMQTTMessage):
         self.sendMQTTMessage = sendMQTTMessage

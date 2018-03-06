@@ -29,7 +29,7 @@ def send_direct_message(msg, twitter_handle):
     try:
         api.PostDirectMessage(msg, user_id=None, screen_name=twitter_handle)
     except Exception as e:
-        print(e)
+        logger.error(e)
         tweet_at_user(msg + " \n\nFollow us so we can DM you.", twitter_handle)
 
 def tweet_at_user(msg, twitter_handle):
@@ -37,7 +37,7 @@ def tweet_at_user(msg, twitter_handle):
     try:
         api.PostUpdate(status='@' + twitter_handle+" " + msg)
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 # ---------------- Notifications ------------------
 def humidity_twitter_check(humidity, twitter_handle, photon_id = None):
@@ -55,10 +55,10 @@ def humidity_twitter_check(humidity, twitter_handle, photon_id = None):
                 msg += 'This room appears to be pretty dry.' + \
                        ' Humidity at ' + str(humidity) + '%.'
                 send_direct_message(msg, twitter_handle)
-            print(msg)
+            logger.info(msg)
         previous['humidity'] = humidity
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 
 def temperature_twitter_check(temperature, twitter_handle, photon_id=None):
@@ -83,10 +83,10 @@ def temperature_twitter_check(temperature, twitter_handle, photon_id=None):
                        ' Temperature at ' + str(temperature) + 'C.'
                 send_direct_message(msg, twitter_handle)
 
-            print(msg)
+            logger.info(msg)
         previous['temperature'] = temperature
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 def light_twitter_check(light, twitter_handle, photon_id=None):
     try:
@@ -105,10 +105,10 @@ def light_twitter_check(light, twitter_handle, photon_id=None):
                        ' Light levels at ' + str(light) + 'lux.'
                 send_direct_message(msg, twitter_handle)
 
-            print(msg)
+            logger.info(msg)
         previous['light'] = light
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 def sound_twitter_check(sound, twitter_handle, photon_id=None):
     try:
@@ -127,10 +127,10 @@ def sound_twitter_check(sound, twitter_handle, photon_id=None):
                        ' Sound levels at ' + str(sound) + 'dB.'
                 send_direct_message(msg, twitter_handle)
 
-            print(msg)
+            logger.info(msg)
         previous['sound'] = sound
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 def motion_twitter_check(motion, twitter_handle, photon_id=None):
     try:
@@ -140,10 +140,10 @@ def motion_twitter_check(motion, twitter_handle, photon_id=None):
                 msg += photon_id + ' says: '
             msg += 'Motion Detected in this room.'
             send_direct_message(msg, twitter_handle)
-            print(msg)
+            logger.info(msg)
         previous['motion'] = motion
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 def tilt_x_twitter_check(tilt_x, twitter_handle, photon_id=None):
     try:
@@ -154,10 +154,10 @@ def tilt_x_twitter_check(tilt_x, twitter_handle, photon_id=None):
             else:
                 msg += 'Sensor was tilted'
             send_direct_message(msg, twitter_handle)
-            print(msg)
+            logger.info(msg)
         previous['tilt_x'] = tilt_x
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 def tilt_y_twitter_check(tilt_y, twitter_handle, photon_id=None):
     try:
@@ -168,10 +168,10 @@ def tilt_y_twitter_check(tilt_y, twitter_handle, photon_id=None):
             else:
                 msg += 'Sensor was tilted'
             send_direct_message(msg, twitter_handle)
-            print(msg)
+            logger.info(msg)
         previous['tilt_y'] = tilt_y
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 
 def uv_twitter_check(uv, twitter_handle, photon_id=None):
@@ -196,10 +196,10 @@ def uv_twitter_check(uv, twitter_handle, photon_id=None):
                        ' UV levels at ' + str(uv) + ' lux.'
                 send_direct_message(msg, twitter_handle)
 
-            print(msg)
+            logger.infp(msg)
         previous['uv'] = uv
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 
 def if_twitter_check(ir, twitter_handle, photon_id=None):
@@ -219,10 +219,11 @@ def if_twitter_check(ir, twitter_handle, photon_id=None):
                        ' IR levels at ' + str(ir) + ' lux.'
                 send_direct_message(msg, twitter_handle)
 
-            print(msg)
+            logger.info(msg)
         previous['ir'] = ir
     except Exception as e:
-        print(e)
+        logger.error(e)
+
 
 
 def is_not_close(new, old):
