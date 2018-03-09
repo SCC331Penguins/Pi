@@ -4,7 +4,9 @@ def getGUID():
     return str(uuid.uuid4())
 def randFloat(limit=10.0):
     return random.uniform(0.0,limit)
-def getResponse(device_id):
+def randInt(limit=9999):
+    return random.randint(0,limit)
+def getResponse(device_id, j):
     return {
         'SENSORID':device_id,
         'light':randFloat(),
@@ -15,6 +17,7 @@ def getResponse(device_id):
         'temp':randFloat(),
         'tiltX':randFloat(),
         'tiltY':randFloat(),
+        'time':j*30, # needs to be a divisor of 30 because only 2 records a min should be commited to Cache
     }
 class TestUtils(unittest.TestCase):
 
@@ -34,7 +37,7 @@ class TestUtils(unittest.TestCase):
                 db.push({
                     'type':'SENSORDATA',
                     'device_id':sensorID,
-                    'data':getResponse(sensorID),
+                    'data':getResponse(sensorID,j),
                 })
                 j+=1
             i+=1

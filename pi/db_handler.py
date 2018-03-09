@@ -9,7 +9,7 @@ class DBHandler:
     """
     This Handles the Queue which The Worker pulls from in order to determine what DB inserts to DO
     """
-    def __init__(self, cacheName, sendMsg):
+    def __init__(self, cacheName, sendMsg=None):
         self.cacheName = cacheName
         self.queue = Queue()
         self.sendMsg = sendMsg
@@ -79,7 +79,8 @@ class DBWorker(Thread):
                 logger.debug('Added data for ' + evt['device_id'])
             elif evt['type'] == 'UPDATESENSORS':
                 data = self.cache.getSensorData()
-                self.db.sendMsg('DATA',{"sensors":data})
+                if self.db.sendMsg is not None:
+                    self.db.sendMsg('DATA',{"sensors":data})
             else:
                 logger.debug('invalid evt')
             self.db.queue.task_done()

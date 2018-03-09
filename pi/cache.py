@@ -154,7 +154,7 @@ class Cache:
         return cursor.fetchall()
     def getLastTime(self):
         # get sensorData from DB given a device_id
-        sql = "SELECT time FROM sensorData WHERE time NOT NULL  ORDER BY time DESC LIMIT 1;"
+        sql = "SELECT 'time' FROM sensorData WHERE 'time' NOT NULL  ORDER BY time DESC LIMIT 1;"
         cursor = self.conn.cursor()
         cursor.execute(sql)
         return cursor.fetchone()
