@@ -1,4 +1,4 @@
-import sys, os, sqlite3, urllib, logging
+import sys, os, sqlite3, urllib, logging, calendar, datetime
 from HTMLParser import HTMLParser
 sensors = ['light', 'sound', 'UV', 'IR', 'temp', 'motion', 'humid', 'tiltX', 'tiltY', 'time']
 htmlParser = HTMLParser()
@@ -30,6 +30,10 @@ class Cache:
                 `id` INT AUTO_INCREMENT PRIMARY KEY,`SENSORID`,'''+','.join(sensors) + ' )')
             cursor.execute('''CREATE TABLE scripts (
                 `id` INT AUTO_INCREMENT PRIMARY KEY,`script`)''')
+            cursor.execute('''CREATE TABLE status (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,`timestamp`, `userlocation`, `armed`)''')
+            cursor.execute('''CREATE TABLE configButtons (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,`timestamp`, `1`, `2`,`3`,`4`)''')
 
             self.conn.commit()
         pass
@@ -38,6 +42,73 @@ class Cache:
         for idx,col in enumerate(cursor.description):
             d[col[0]] = row[idx]
         return d
+    def getCurrentStatus(self):
+        # get sensorData from DB given a device_id
+        sql = "SELECT * FROM status ORDER BY timestamp DESC LIMIT 1"
+        cursor = self.conn.cursor()
+        cursor.execute(sql)
+        return cursor.fetchone()
+
+    def setStatus(self, status):
+        try:
+            cursor = self.conn.cursor()
+            currentStatus = self.getCurrentStatus()
+            sql = 'INSERT INTO status (timestamp, userlocation, armed) VALUES(?,?,?)';
+            toAdd = []
+            toAdd.append(calendar.timegm(datetime.datetime.utcnow().timetuple()))
+            if(status['userlocation']is None):
+                status['userlocation'] = currentStatus['userlocation']
+            toAdd.append(status['userlocation'])
+            if(status['armed']is None):
+                status['armed'] = currentStatus['armed']
+            toAdd.append(status['armed'])
+            cursor.execute(sql,toAdd)
+            self.conn.commit()
+            return True
+        except Exception as e:
+            logger.error(e)
+            return False
+
+    def getButtonConfig(self):
+        sql = "SELECT * FROM configButtons ORDER BY timestamp DESC LIMIT 1"
+        cursor = self.conn.cursor()
+        cursor.execute(sql)
+        config = cursor.fetchone()
+        if(config is None):
+            return {'timestamp':None, '1':None, '2':None, '3':None, '4':None}
+        return config
+
+    def updateButtons(self, buttons):
+        try:
+            cursor = self.conn.cursor()
+            currentConfig = self.getButtonConfig()
+            sql = 'INSERT INTO configButtons (`timestamp`, `1`, `2`,`3`,`4`) VALUES(?,?,?,?,?)';
+            toAdd = []
+            toAdd.append(calendar.timegm(datetime.datetime.utcnow().timetuple()))
+            if(buttons['1']is None):
+                buttons['1'] = currentConfig['1']
+            toAdd.append(buttons['1'])
+            if(buttons['2']is None):
+                buttons['2'] = currentConfig['2']
+            toAdd.append(buttons['2'])
+            if(buttons['3']is None):
+                buttons['3'] = currentConfig['3']
+            toAdd.append(buttons['3'])
+            if(buttons['4']is None):
+                buttons['4'] = currentConfig['4']
+            toAdd.append(buttons['4'])
+            cursor.execute(sql,toAdd)
+            self.conn.commit()
+            return True
+        except Exception as e:
+            logger.error(e)
+            return False
+    def dumpStatus(self):
+        # get sensorData from DB given a device_id
+        sql = "SELECT * FROM status ORDER BY timestamp DESC"
+        cursor = self.conn.cursor()
+        cursor.execute(sql)
+        return cursor.fetchmany()
 
     def updateScripts(self, scripts):
         # DELETE ALL Scripts and INSERT new Scripts
@@ -67,7 +138,7 @@ class Cache:
         cursor.execute(sql,toAdd)
         self.conn.commit()
         return True
-        pass
+
     def getSensorDataFromID(self, device_id, Limit=None):
         # get sensorData from DB given a device_id
         if Limit<=0 and Limit != None:

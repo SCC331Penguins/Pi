@@ -11,4 +11,5 @@ logging.getLogger().addHandler(logging.StreamHandler())
 
 p = Pi([])
 p.start()
-p.run()
+raw_input()
+p.test()

@@ -32,6 +32,16 @@ class DBHandler:
         self.queue.put({
             'type':'UPDATESENSORS',
         })
+    def setStatus(self, status):
+        self.queue.put({
+            'type':'SETSTATUS',
+            'data':status,
+        })
+    def setButtonConfig(self, buttons):
+        self.queue.put({
+            'type':'SETBUTTONCONFIG',
+            'data':buttons,
+        })
     def start(self):
         self.addWorkerThread()
 
@@ -58,6 +68,11 @@ class DBWorker(Thread):
             if(evt['type'] == 'UPDATESCRIPTS'):
                 self.cache.updateScripts(evt['data'])
                 logger.debug('Updated Scripts')
+            elif(evt['type'] == 'SETSTATUS'):
+                self.cache.setStatus(evt['data'])
+            elif(evt['type'] == 'SETBUTTONCONFIG'):
+                self.cache.setButtonConfig(evt['data'])
+                logger.debug('Updated Status')
             elif evt['type'] == 'SENSORDATA':
                 if(evt['data']['time']%30 == 0):
                     self.cache.addSensorData(evt['device_id'], evt['data'])

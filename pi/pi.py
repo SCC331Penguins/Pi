@@ -61,20 +61,42 @@ class Pi:
         self.link_client_to_server()
         reactor.run()
         # you are here when Ctrl C is pressed
-
+    def test(self):
+        cache = Cache(self.cacheName)
+        try:
+            print('testing')
+            scripts = cache.getScripts()
+            print cache.getSensorData()
+            while True:
+                self.scripts.pushCommand('print "hello33"')
+                raw_input('waiting')
+        except Exception as e:
+            print e
     def addToDB(self, device_id, data):
         self.db.push({
             'type':'SENSORDATA',
             'device_id':device_id,
             'data':data,
         })
-
+    def alert(self, zone):
+        alertConfig = [
+            {"type":'Kettle', "command":"turnOn"},
+            {"type":'Lights', "command":"g"+zone+"LightsOn"},
+            {"type":'Plug', "command":"turn_on_plug"},
+        ]
+        for conf in alertConfig:
+            code = """for item in actuators:
+            if item['type'] == '{}':
+                {}(item,'{}')
+            """.format(conf['type'],conf['command'])
+            self.scripts.pushCommand(code)
     def create_websocket_server(self, port):
         # creates WS Server
         logger.info("Starting websocket server...")
-        self.ws_server = WSServerFactory(self.addToDB)
+        self.ws_server = WSServerFactory(self.addToDB, self.cacheName)
         if(self.start_mqtt_client):
             self.ws_server.addMQTTCallback(self.mqtt_service.sendMsg)
+        self.ws_server.addAlertDB(self.alert, self.db)
         self.ws_server.protocol = WSProtocol
         reactor.listenTCP(port,self.ws_server)
         logger.info("Started websocket server")

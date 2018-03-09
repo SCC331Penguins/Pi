@@ -16,14 +16,27 @@ class WSProtocol(WebSocketServerProtocol):
             return
         data = loads(payload)
         SENSORID = data['SENSORID']
-        if SENSORID == "GAME":
-            self.factory.gameClients.append(self)
-            return
-        self.factory.addToDB(SENSORID,data)
-        if SENSORID in self.factory.dataChannels:
-            for channel in self.factory.dataChannels[SENSORID]:
-                self.factory.sendMQTTMessage('DATA',data,channel)
-        self.factory.broadcastToGame(payload)
+        button = data.get('button')
+        alert = data.get('alert')
+        if button is None and alert is None:
+            if SENSORID == "GAME":
+                self.factory.gameClients.append(self)
+                return
+            if(data['motion'] == True and self.cache.getCurrentStatus()['userlocation'] == SENSORID):
+                self.factory.alert(1)
+                self.factory.broadcast('alert:'+alert)
+            self.factory.addToDB(SENSORID,data)
+            if SENSORID in self.factory.dataChannels:
+                for channel in self.factory.dataChannels[SENSORID]:
+                    self.factory.sendMQTTMessage('DATA',data,channel)
+            self.factory.broadcastToGame(payload)
+        elif button is not None:
+            # button is the number that got pressed
+            command = self.factory.cache.getButtonConfig()[button]
+            if command is not None:
+                self.factory.pushCommand(command)
+        elif alert is not None:
+            self.factory.broadcast('alert:'+alert)
 
     def connectionLost(self, reason):
         WebSocketServerProtocol.connectionLost(self, reason)
@@ -36,11 +49,12 @@ class WSServerFactory(WebSocketServerFactory):
     Simple websocket server.with broadcast functionality
     """
 
-    def __init__(self, addToDB):
+    def __init__(self, addToDB, cacheName):
         WebSocketServerFactory.__init__(self, u"ws://127.0.0.1:8000")
         self.clients = []
         self.gameClients = []
         self.tickcount = 0
+        self.cache = Cache(cacheName)
         self.protocol = WSProtocol
         self.addToDB = addToDB
         self.sendMQTTMessage = None
@@ -49,7 +63,9 @@ class WSServerFactory(WebSocketServerFactory):
         if client not in self.clients:
             logger.info("registered client {}".format(client.peer))
             self.clients.append(client)
-
+    def addAlertDB(self, alert, db):
+        self.alert = alert
+        self.db = db
     def unregister(self, client):
         if client in self.clients:
             logger.info("unregistered client {}".format(client.peer))

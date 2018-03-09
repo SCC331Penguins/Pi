@@ -41,7 +41,7 @@ class ScriptWorker(Thread):
     """
     def __init__(self,ctx, actHandler):
         Thread.__init__(self)
-        self.data = {}
+        self.data = {"430032000f47353136383631":{"light":1.2}}
         self.count = 0
         self.cacheName = ctx.cacheName
         self.handler = ctx
@@ -53,16 +53,21 @@ class ScriptWorker(Thread):
         time.sleep(10)
         while True:
             self.scripts = []
-            # self.scripts = self.cache.getScripts()
+            self.scripts = self.cache.getScripts()
             while self.count < DATA_COUNT_BEFORE_REFRESH:
-                # newData = self.handler.pull()
-                # self.data.update(newData)
+                self.data.update(self.cache.getSensorData())
                 self.evaluateData()
                 self.count += 1
             self.count = 0
+    def removeScript(self, script):
+        def remove():
+            self.scripts.remove(script)
+        return remove
+
     def evaluateData(self):
         actuators = self.actHandler.getActuators()
-        stateData = {'sensors': {"430032000f47353136383631":{"light":1.2}}, "actuators":actuators}
+        stateData = {'sensors': self.data, "actuators":actuators}
+
         stateData.update(ActuatorFunctions)
         if self.handler.queue.qsize() > 0:
             logger.info('executing....')
@@ -72,7 +77,7 @@ class ScriptWorker(Thread):
             try:
                 # turnOnKettle("192.168.0.102")
                 # send_message_lights("420","AC:CF:23:A1:FB:38")
-                exec(toValidScript(script), stateData)
+                exec(toValidScript(script), stateData,{"ret":self.removeScript(script)})
             except Exception as e:
                 logger.error(e)
                 pass

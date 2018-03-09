@@ -23,6 +23,16 @@ def UPDATE_SENSORS(self, message):
 def SET_WIFI_CREDS(ctx, message):
     WiFiCreds = message.payload
 
+def ARM(ctx, message):
+    ctx.armed = message['payload']
+    ctx.db.setStatus({'armed':ctx.armed})
+def PHOLOC(ctx, message):
+    ctx.userlocation = message['payload']
+    ctx.db.setStatus({'userlocation':ctx.userlocation})
+
+def CONFIB(ctx, message):
+    ctx.configButtons = message['payload']
+
 def UPDATE_SCRIPTS(self, message):
     logger.debug('Scripts Updating')
     try:
