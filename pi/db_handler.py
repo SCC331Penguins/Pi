@@ -71,7 +71,7 @@ class DBWorker(Thread):
             elif(evt['type'] == 'SETSTATUS'):
                 self.cache.setStatus(evt['data'])
             elif(evt['type'] == 'SETBUTTONCONFIG'):
-                self.cache.setButtonConfig(evt['data'])
+                self.cache.updateButtons(evt['data'])
                 logger.debug('Updated Status')
             elif evt['type'] == 'SENSORDATA':
                 if(evt['data']['time']%30 == 0):

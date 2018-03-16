@@ -34,7 +34,7 @@ class Cache:
                 `id` INT AUTO_INCREMENT PRIMARY KEY,`timestamp`, `userlocation`, `armed`)''')
             cursor.execute('''CREATE TABLE configButtons (
                 `id` INT AUTO_INCREMENT PRIMARY KEY,`timestamp`, `1`, `2`,`3`,`4`)''')
-
+            self.setStatus({'userlocation':'Unknown', 'armed':False})
             self.conn.commit()
         pass
     def dict_factory(self, cursor, row):
@@ -78,6 +78,21 @@ class Cache:
             return {'timestamp':None, '1':None, '2':None, '3':None, '4':None}
         return config
 
+    def toCommand(self, obj):
+        payload = obj
+        pythonCode = ""
+        if(payload['command']=='sendNotification'):
+            pythonCode = """for item in actuators:
+            if item['mac'] == '{}':
+                {}(item,'{}')
+            """.format(payload['MAC'],payload['command'], payload['message'])
+        else:
+            pythonCode = """for item in actuators:
+            if item['mac'] == '{}':
+                {}(item)
+            """.format(payload['MAC'],payload['command'])
+        return pythonCode;
+
     def updateButtons(self, buttons):
         try:
             cursor = self.conn.cursor()
@@ -87,16 +102,16 @@ class Cache:
             toAdd.append(calendar.timegm(datetime.datetime.utcnow().timetuple()))
             if(buttons['1']is None):
                 buttons['1'] = currentConfig['1']
-            toAdd.append(buttons['1'])
+            toAdd.append(self.toCommand(buttons['1']))
             if(buttons['2']is None):
                 buttons['2'] = currentConfig['2']
-            toAdd.append(buttons['2'])
+            toAdd.append(self.toCommand(buttons['2']))
             if(buttons['3']is None):
                 buttons['3'] = currentConfig['3']
-            toAdd.append(buttons['3'])
+            toAdd.append(self.toCommand(buttons['3']))
             if(buttons['4']is None):
                 buttons['4'] = currentConfig['4']
-            toAdd.append(buttons['4'])
+            toAdd.append(self.toCommand(buttons['4']))
             cursor.execute(sql,toAdd)
             self.conn.commit()
             return True
@@ -131,10 +146,14 @@ class Cache:
                 val = data.get(sensor,'NULL')
                 if(val != 'NULL' and val != None and sensor!= "SENSORID"):
                     val = float(val)
+                if(sensor == 'motion'):
+                    val = True
                 toAdd.append(val)
             except ValueError:
                 return False
         sql = 'INSERT INTO sensorData (SENSORID, '+','.join(sensors)+') VALUES(?,?,?,?,?,?,?,?,?,?,?)';
+        logger.info(4378)
+        logger.info(toAdd)
         cursor.execute(sql,toAdd)
         self.conn.commit()
         return True
@@ -158,7 +177,11 @@ class Cache:
         cursor = self.conn.cursor()
         cursor.execute(sql)
         return cursor.fetchone()
-
+    def getSensorIDs(self):
+        sql = "SELECT DISTINCT SENSORID from sensorData;"
+        cursor = self.conn.cursor()
+        cursor.execute(sql)
+        return cursor.fetchall()
     def getSensorData(self):
         # get sensorData from DB given a device_id
         sql = "SELECT * FROM sensorData WHERE time%(5*60) = 0";

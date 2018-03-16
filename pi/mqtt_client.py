@@ -28,10 +28,16 @@ def ARM(ctx, message):
     ctx.db.setStatus({'armed':ctx.armed})
 def PHOLOC(ctx, message):
     ctx.userlocation = message['payload']
+    logger.info('Phone Location is ' + ctx.userlocation)
     ctx.db.setStatus({'userlocation':ctx.userlocation})
 
 def CONFIB(ctx, message):
+    logger.debug(message['payload'])
     ctx.configButtons = message['payload']
+    ctx.db.push({
+    'type':'SETBUTTONCONFIG',
+    'data':message['payload']
+    })
 
 def UPDATE_SCRIPTS(self, message):
     logger.debug('Scripts Updating')
@@ -67,6 +73,20 @@ def GIVE_DATA(self, message):
     self.addDataChannel(payload['sensor_id'], payload['channel_id'])
 def STOP_DATA(self, message):
     self.removeDataChannel(payload['sensor_id'], payload['channel_id'])
+def RSTART(self, message):
+    self.restart()
+    reactor.stop()
+
+def SHTDWN(self, message):
+    reactor.stop()
+def SLPPHN(self, message):
+    print self.cache.getSensorIDs()[0]
+    sensors = self.cache.getSensorIDs()
+    # for sensor in sensors:
+    #     logger.info('id:{},Sleep:1600'.format(sensor['SENSORID']))
+    #     time.sleep(1)
+    self.cb('id:{};id:{};id:{},Sleep:1600'.format(sensors[0]['SENSORID'],sensors[1]['SENSORID'],sensors[2]['SENSORID']))
+    pass
 
 typeDic = {
 # 'PING':PING,
@@ -80,6 +100,11 @@ typeDic = {
 'NCHAN':NEW_CHANNEL,
 'GDATA':GIVE_DATA,
 'SDATA':STOP_DATA,
+'PHOLOC':PHOLOC,
+'CONFIB':CONFIB,
+'RSTART':RSTART,
+'SHTDWN':SHTDWN,
+'SLPPHN':SLPPHN,
 }
 def err(err):
     logger.error(err)
@@ -94,6 +119,7 @@ class MQTTService(ClientService):
         )
         self.generate_token()
         self.channels = ['SCC33102_R01']
+        self.cache = Cache('Penguins')
         logger.info('WAMP Server Setup')
 
     def startService(self):
@@ -129,6 +155,8 @@ class MQTTService(ClientService):
         logger.info(self.channels)
         self.channels.append(channel)
         self.protocol.subscribe(str(channel))
+    def set_rs_callback(self, cb):
+        self.restart = cb;
     def subscribe(self):
         for channel in self.channels:
             self.protocol.subscribe(channel)
@@ -156,6 +184,7 @@ class MQTTService(ClientService):
 
     def do_ping(self):
         logger.info('sent Ping')
+        logger.error('ggg')
         # self.publish(u"SCC33102_R01",{"source": 0, "token": 0, "type": 8, "payload": ["print%28%27hi+script%27%29", "print%28%27hi+script%27%29"]})
         self.sendMsg('PING',None)
         reactor.callLater(10,self.do_ping)

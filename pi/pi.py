@@ -2,6 +2,7 @@ import sys, jwt, logging, time
 from twisted.internet import protocol, reactor
 from mqtt.client.factory import MQTTFactory
 from twisted.internet.endpoints import clientFromString
+# from Twitter import send_direct_message
 logger = logging.getLogger()
 from .db_handler import *
 # from .actuator_handler import *
@@ -15,6 +16,7 @@ class Pi:
     This is the main class this handles the main Thread but when started fires off some daemons to handle other features such as Database, Actuators and Scripts
     """
     def __init__(self, args):
+        self.restart = False
         pass
     def start(self, start_websocket_server=True, start_mqtt_client=True, websocket_server_port=8000, mqtt_client_port=1883, cacheName='Penguins'):
         # this function deals with most of the specifics that the pi can use
@@ -55,12 +57,21 @@ class Pi:
         logger.info("Initiaizing Pi Scripts Queue...")
         self.scripts = ScriptHandler(self.cacheName,self.actHandler, self.mqtt_service)
         self.scripts.start()
+        if(self.start_websocket_server):
+            self.ws_server.addPushCommand(self.scripts.pushCommand)
         logger.info("Initiaized Pi Scripts Queue")
 
     def run(self):
         self.link_client_to_server()
         reactor.run()
+        while(self.restart):
+            self.restart = False
+            print('---===Restarting===---')
+            time.sleep(2)
+            os.execl(sys.executable, sys.executable, *sys.argv)
         # you are here when Ctrl C is pressed
+    def doRestart(self):
+        self.restart = True
     def test(self):
         cache = Cache(self.cacheName)
         try:
@@ -79,9 +90,13 @@ class Pi:
             'data':data,
         })
     def alert(self, zone):
+        sensors = ['240042000b51353432383931',
+        '1b002a001247343438323536',
+        '1e0025001147353230333635']
+
         alertConfig = [
             {"type":'Kettle', "command":"turnOn"},
-            {"type":'Lights', "command":"g"+zone+"LightsOn"},
+            {"type":'Lights', "command":"g"+str(sensors.index(zone)+1)+"LightsOn"},
             {"type":'Plug', "command":"turn_on_plug"},
         ]
         for conf in alertConfig:
@@ -90,20 +105,22 @@ class Pi:
                 {}(item,'{}')
             """.format(conf['type'],conf['command'])
             self.scripts.pushCommand(code)
+            # send_direct_message("An alarm in your house was triggered.", 'EduardSchlotter')
+
     def create_websocket_server(self, port):
         # creates WS Server
         logger.info("Starting websocket server...")
         self.ws_server = WSServerFactory(self.addToDB, self.cacheName)
         if(self.start_mqtt_client):
             self.ws_server.addMQTTCallback(self.mqtt_service.sendMsg)
-        self.ws_server.addAlertDB(self.alert, self.db)
         self.ws_server.protocol = WSProtocol
-        reactor.listenTCP(port,self.ws_server)
+        reactor.listenTCP(8000,self.ws_server)
         logger.info("Started websocket server")
 
-    def create_mqtt_client(self, port=1883, path=u'ws', realm=u'default', ip='sccug-330-02.lancs.ac.uk'):
+    def create_mqtt_client(self, port=1883, path=u'ws', realm=u'default', ip='localhost'):
         # creates WAMP Server
         url = 'tcp:'+ip+':'+str(port)
+        logger.info('mqtt://'+url)
         logger.info("Starting MQTT client...")
         self.mqtt_client = MQTTFactory(profile=MQTTFactory.PUBLISHER | MQTTFactory.SUBSCRIBER)
         self.mqtt_service = MQTTService(clientFromString(reactor,url),self.mqtt_client)
@@ -111,5 +128,7 @@ class Pi:
         self.createActuators()
         logger.info("Started MQTT client")
     def link_client_to_server(self):
+        self.mqtt_service.set_rs_callback(self.doRestart)
         self.mqtt_service.set_broadcast(self.ws_server.broadcast,self.db.updateScripts)
+        self.ws_server.addAlertDB(self.alert, self.db)
         self.mqtt_service.addDataChannelHandlers(self.ws_server.addDataChannel, self.ws_server.removeDataChannel, self.scripts.pushCommand, self.db)

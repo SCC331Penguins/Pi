@@ -55,7 +55,7 @@ class ScriptWorker(Thread):
             self.scripts = []
             self.scripts = self.cache.getScripts()
             while self.count < DATA_COUNT_BEFORE_REFRESH:
-                self.data.update(self.cache.getSensorData())
+                # self.data.update(self.cache.getSensorData())
                 self.evaluateData()
                 self.count += 1
             self.count = 0

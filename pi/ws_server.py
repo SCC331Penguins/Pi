@@ -1,6 +1,9 @@
 from autobahn.twisted.websocket import WebSocketServerFactory, \
     WebSocketServerProtocol
 from json import loads, dumps
+from twisted.internet import reactor
+
+from .cache import Cache
 import logging
 logger = logging.getLogger()
 
@@ -14,17 +17,22 @@ class WSProtocol(WebSocketServerProtocol):
         # in here maybe append payload to a structure for analysis and run analysis
         if isBinary:
             return
+        logger.info(payload)
         data = loads(payload)
-        SENSORID = data['SENSORID']
         button = data.get('button')
         alert = data.get('alert')
         if button is None and alert is None:
+            SENSORID = data['SENSORID']
             if SENSORID == "GAME":
                 self.factory.gameClients.append(self)
                 return
-            if(data['motion'] == True and self.cache.getCurrentStatus()['userlocation'] == SENSORID):
-                self.factory.alert(1)
-                self.factory.broadcast('alert:'+alert)
+            logger.debug('Hello i am in'+SENSORID)
+            logger.debug('Hello1 i am in'+self.factory.cache.getCurrentStatus()['userlocation'])
+            logger.debug('Alex The Lion '+str(self.factory.cache.getCurrentStatus()['userlocation'] in SENSORID))
+            if( data['motion'] and self.factory.cache.getCurrentStatus()['userlocation'] not in SENSORID):
+                logger.info('TRIGGERED BY MOTION AND userlocation in ' + SENSORID)
+                self.factory.broadcast('ALARM_ON')
+                self.factory.alert(SENSORID)
             self.factory.addToDB(SENSORID,data)
             if SENSORID in self.factory.dataChannels:
                 for channel in self.factory.dataChannels[SENSORID]:
@@ -32,7 +40,10 @@ class WSProtocol(WebSocketServerProtocol):
             self.factory.broadcastToGame(payload)
         elif button is not None:
             # button is the number that got pressed
-            command = self.factory.cache.getButtonConfig()[button]
+            # print self.factory.cache.getButtonConfig()
+            command = self.factory.cache.getButtonConfig().get(str(button), None)
+            print 666
+            print command
             if command is not None:
                 self.factory.pushCommand(command)
         elif alert is not None:
@@ -58,7 +69,14 @@ class WSServerFactory(WebSocketServerFactory):
         self.protocol = WSProtocol
         self.addToDB = addToDB
         self.sendMQTTMessage = None
+        self.pushCommand = None
         self.dataChannels = {}
+        reactor.callLater(1,self.doAlert)
+    def doAlert(self):
+        print 'ALERTING';
+        self.broadcast('ALARM_ON');
+        # reactor.callLater(5,self.doAlert)
+
     def register(self, client):
         if client not in self.clients:
             logger.info("registered client {}".format(client.peer))
@@ -76,6 +94,23 @@ class WSServerFactory(WebSocketServerFactory):
         if self.dataChannels.get(SENSORID) is None:
             self.dataChannels[SENSORID] = []
         self.dataChannels[SENSORID].append(channel)
+    def toCommand(self, commandObj):
+            payload = commandObj
+            pythonCode = ""
+            if(payload['command']=='sendNotification'):
+                pythonCode = """for item in actuators:
+                if item['mac'] == '{}':
+                    {}(item,'{}')
+                """.format(payload['MAC'],payload['command'], payload['message'])
+            else:
+                pythonCode = """for item in actuators:
+                if item['mac'] == '{}':
+                    {}(item)
+                """.format(payload['MAC'],payload['command'])
+            logger.debug(pythonCode)
+            return pythonCode
+    def addPushCommand(self, command):
+        self.pushCommand = command
 
     def removeDataChannel(self, SENSORID, channel):
         if self.dataChannels.get(SENSORID) is None:
